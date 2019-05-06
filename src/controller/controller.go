@@ -15,4 +15,5 @@ type LevelConfigController interface {
 	Create(c echo.Context) error
 	Rollback(c echo.Context) error
 	Update(c echo.Context) error
+	MergedQuery(c echo.Context) error
 }

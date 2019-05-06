@@ -19,20 +19,21 @@ type LevelConfigState interface {
 	Query(level model.Level, id model.Id, query string) (config model.LevelConfig, exists bool)
 	Set(levelConfig model.LevelConfig)
 	Get(level model.Level, id model.Id) (levelConfig model.LevelConfig, exists bool)
-	WithLock(level model.Level, id model.Id, runner Runner) error
+	WithLock(level model.Level, id model.Id, runner WriteRunner) error
 }
 
 type levelConfigStateImpl struct {
-	GlobalState      LevelConfigMap `inject:"GlobalState"`
-	ClusterState     LevelConfigMap `inject:"ClusterState"`
-	NamespaceState   LevelConfigMap `inject:"NamespaceState"`
-	ApplicationState LevelConfigMap `inject:"ApplicationState"`
-	IdService        IdService      `inject:"IdService"`
-	VersionMap       map[model.Id][]int
-	VersionMapLock   sync.RWMutex
+	GlobalState             LevelConfigMap          `inject:"GlobalState"`
+	ClusterState            LevelConfigMap          `inject:"ClusterState"`
+	NamespaceState          LevelConfigMap          `inject:"NamespaceState"`
+	ApplicationState        LevelConfigMap          `inject:"ApplicationState"`
+	IdService               IdService               `inject:"IdService"`
+	LevelConfigQueryService LevelConfigQueryService `inject:"LevelConfigQueryService"`
+	VersionMap              map[model.Id][]int
+	VersionMapLock          sync.RWMutex
 }
 
-func (l *levelConfigStateImpl) WithLock(level model.Level, id model.Id, runner Runner) error {
+func (l *levelConfigStateImpl) WithLock(level model.Level, id model.Id, runner WriteRunner) error {
 	switch level {
 	case model.Global:
 		return l.GlobalState.WithLock(id, runner)
@@ -101,16 +102,24 @@ func (l *levelConfigStateImpl) set(levelConfig model.LevelConfig, configMap Leve
 func (l *levelConfigStateImpl) Query(level model.Level, id model.Id, query string) (config model.LevelConfig, exists bool) {
 	switch level {
 	case model.Global:
-		return l.GlobalState.Query(id, query)
+		return l.query(l.GlobalState, id, query)
 	case model.Cluster:
-		return l.ClusterState.Query(id, query)
+		return l.query(l.ClusterState, id, query)
 	case model.Namespace:
-		return l.NamespaceState.Query(id, query)
+		return l.query(l.NamespaceState, id, query)
 	case model.Application:
-		return l.ApplicationState.Query(id, query)
+		return l.query(l.ApplicationState, id, query)
 	default:
 		return config, false
 	}
+}
+
+func (l *levelConfigStateImpl) query(state LevelConfigMap, id model.Id, query string) (config model.LevelConfig, exists bool) {
+	_ = state.WithReadLock(id, func(levelConfig model.LevelConfig, _ bool) error {
+		config, exists = l.LevelConfigQueryService.Query(levelConfig, query)
+		return nil
+	})
+	return config, exists
 }
 
 func levelConfigStateFactory(_ axon.Args) axon.Instance {

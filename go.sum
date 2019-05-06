@@ -1,3 +1,5 @@
+github.com/Jeffail/gabs v1.3.1 h1:6SHn5/5/JADuTC1SJGYB9RI4aZ7dbtDjXfsHhyoanm8=
+github.com/Jeffail/gabs v1.3.1/go.mod h1:6xMvQMK4k33lb7GUUpaAPh6nKMmemQeg5d4gn7/bOXc=
 github.com/armon/consul-api v0.0.0-20180202201655-eb2c6b5be1b6/go.mod h1:grANhF5doyWs3UAsr3K4I6qtAmlQcZDesFNEHPZAzj8=
 github.com/bet365/jingo v0.0.0-20190426155527-41b5fd2117bb h1:7nnXPRgUDmMDU5/ZS0tIj3bW67+4+arvQLwHwpm6VSI=
 github.com/bet365/jingo v0.0.0-20190426155527-41b5fd2117bb/go.mod h1:YVo0ML7j7ob+mvgmOXoZHcGu99n2HJQXw2VqkTteF3I=

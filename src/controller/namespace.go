@@ -20,6 +20,23 @@ type namespaceControllerImpl struct {
 	LevelConfigService service.NamespaceLevelConfigService `inject:"NamespaceLevelConfigService"`
 }
 
+func (n *namespaceControllerImpl) MergedQuery(c echo.Context) error {
+	key := c.QueryParam("key")
+	namespace := c.Param("namespace")
+	cluster := c.Param("cluster")
+
+	if namespace == "" || cluster == "" {
+		return c.NoContent(http.StatusBadRequest)
+	}
+
+	data, err := n.LevelConfigService.MergedQuery(cluster, namespace, key)
+	if err != nil {
+		return err
+	}
+
+	return c.JSON(http.StatusOK, data)
+}
+
 func (n *namespaceControllerImpl) Update(c echo.Context) error {
 	cluster := c.Param("cluster")
 	namespace := c.Param("namespace")
@@ -114,6 +131,7 @@ func (n *namespaceControllerImpl) GetRoutes() []model.Route {
 		model.NewRoute(http.MethodPost, "/api/admin/config/:cluster/:namespace", n.Create),
 		model.NewRoute(http.MethodPut, "/api/admin/config/:cluster/:namespace/rollback/:version", n.Rollback),
 		model.NewRoute(http.MethodPut, "/api/admin/config/:cluster/:namespace", n.Update),
-		model.NewRoute(http.MethodGet, "/api/config/:cluster/:namespace", n.Query),
+		model.NewRoute(http.MethodGet, "/api/admin/config/:cluster/:namespace", n.Query),
+		model.NewRoute(http.MethodGet, "/api/config/:cluster/:namespace", n.MergedQuery),
 	}
 }

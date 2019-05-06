@@ -5,7 +5,6 @@ import (
 	"config-manager/src/model"
 	"config-manager/src/state"
 	"fmt"
-	"github.com/imdario/mergo"
 	"github.com/json-iterator/go"
 	"github.com/labstack/echo"
 	"net/http"
@@ -15,40 +14,61 @@ const LevelConfigServiceKey = "LevelConfigService"
 
 type LevelConfigService interface {
 	Update(level model.Level, id model.Id, data []byte) (config model.LevelConfig, err error)
-	Query(level model.Level, id model.Id, query string) (*model.LevelConfig, error)
+	Query(level model.Level, id model.Id, query string) (config model.LevelConfig, err error)
+	MergedQuery(level model.Level, id model.Id, query string) (config model.LevelConfig, err error)
 	Create(level model.Level, id model.Id, data []byte) (config model.LevelConfig, err error)
 	Rollback(level model.Level, id model.Id, version int) (config model.LevelConfig, err error)
 	Exists(level model.Level, id model.Id) bool
 }
 
 type levelConfigServiceImpl struct {
-	State        state.LevelConfigState `inject:"LevelConfigState"`
-	FileService  FileService            `inject:"FileService"`
-	LevelService state.LevelService     `inject:"LevelService"`
-	IdService    state.IdService        `inject:"IdService"`
-	Json         jsoniter.API           `inject:"Json"`
+	State                   state.LevelConfigState        `inject:"LevelConfigState"`
+	FileService             FileService                   `inject:"FileService"`
+	LevelService            state.LevelService            `inject:"LevelService"`
+	IdService               state.IdService               `inject:"IdService"`
+	LevelConfigQueryService state.LevelConfigQueryService `inject:"LevelConfigQueryService"`
+	MergeService            MergeService                  `inject:"MergeService"`
+	Json                    jsoniter.API                  `inject:"Json"`
+}
+
+func (l *levelConfigServiceImpl) MergedQuery(level model.Level, id model.Id, query string) (config model.LevelConfig, err error) {
+	levelInt := int(level)
+	names := l.IdService.Names(id)
+	mergedConfig := collections.NewJsonMap([]byte("{}"))
+	var levelConfig model.LevelConfig
+	for i := 0; i <= levelInt; i++ {
+		xLevel := model.Level(i)
+		exists := false
+		if i == 0 {
+			levelConfig, exists = l.State.Get(xLevel, state.GlobalId)
+		} else {
+			levelConfig, exists = l.State.Get(xLevel, l.IdService.Id(names[:i]...))
+		}
+
+		if exists {
+			mergedConfig = l.MergeService.MergeJsonMaps(&mergedConfig, &levelConfig.Config)
+		}
+	}
+	config = levelConfig
+	config.Config = mergedConfig
+
+	if data, exists := l.LevelConfigQueryService.Query(config, query); !exists {
+		return config, echo.NewHTTPError(
+			http.StatusNotFound,
+			fmt.Sprintf("the %s key could not be found", query),
+		)
+	} else {
+		return data, nil
+	}
 }
 
 func (l *levelConfigServiceImpl) Update(level model.Level, id model.Id, data []byte) (config model.LevelConfig, err error) {
 	err = l.State.WithLock(level, id, func(levelConfig model.LevelConfig, exists bool, _ state.Saver) error {
 		if exists {
-			newConfig := make(map[string]interface{})
-			oldConfig := make(map[string]interface{})
-			err = l.Json.Unmarshal(data, &newConfig)
-			if err != nil {
-				return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("invalid json: %s", err.Error()))
-			}
+			newConfig := collections.NewJsonMap(data)
+			mergedData := l.MergeService.MergeJsonMaps(&levelConfig.Config, &newConfig)
 
-			_ = l.Json.Unmarshal(levelConfig.Config.GetRaw(), &oldConfig)
-
-			err = mergo.Merge(&oldConfig, newConfig, mergo.WithOverride)
-			if err != nil {
-				return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("failed to update: %s", err.Error()))
-			}
-
-			mergedData, _ := l.Json.Marshal(oldConfig)
-
-			config = l.newLevelConfig(level, id, mergedData)
+			config = l.newLevelConfig(level, id, mergedData.GetRaw())
 			config.Version = levelConfig.Version + 1
 		} else {
 			config = l.newLevelConfig(level, id, data)
@@ -108,20 +128,15 @@ func (l *levelConfigServiceImpl) Create(level model.Level, id model.Id, data []b
 	return
 }
 
-func (l *levelConfigServiceImpl) Query(level model.Level, id model.Id, query string) (*model.LevelConfig, error) {
-	var data model.LevelConfig
-	if query == "" {
-		data, _ = l.State.Get(level, id)
+func (l *levelConfigServiceImpl) Query(level model.Level, id model.Id, query string) (config model.LevelConfig, err error) {
+	if config, ok := l.State.Query(level, id, query); !ok {
+		return config, echo.NewHTTPError(
+			http.StatusNotFound,
+			fmt.Sprintf("the %s key could not be found", query),
+		)
 	} else {
-		var ok bool
-		if data, ok = l.State.Query(level, id, query); !ok {
-			return nil, echo.NewHTTPError(
-				http.StatusNotFound,
-				fmt.Sprintf("the %s key could not be found", query),
-			)
-		}
+		return config, nil
 	}
-	return &data, nil
 }
 
 func (l *levelConfigServiceImpl) newLevelConfig(level model.Level, id model.Id, data []byte) model.LevelConfig {

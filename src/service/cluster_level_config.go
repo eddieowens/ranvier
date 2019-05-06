@@ -8,7 +8,8 @@ import (
 const ClusterLevelConfigServiceKey = "ClusterLevelConfigService"
 
 type ClusterLevelConfigService interface {
-	Query(cluster string, query string) (*model.LevelConfig, error)
+	Query(cluster string, query string) (model.LevelConfig, error)
+	MergedQuery(cluster string, query string) (model.LevelConfig, error)
 	Create(cluster string, data []byte) (model.LevelConfig, error)
 	Update(cluster string, data []byte) (config model.LevelConfig, err error)
 	Rollback(cluster string, version int) (model.LevelConfig, error)
@@ -19,11 +20,15 @@ type clusterLevelConfigServiceImpl struct {
 	IdService          state.IdService    `inject:"IdService"`
 }
 
+func (c *clusterLevelConfigServiceImpl) MergedQuery(cluster string, query string) (model.LevelConfig, error) {
+	return c.LevelConfigService.MergedQuery(model.Cluster, c.IdService.ClusterId(cluster), query)
+}
+
 func (c *clusterLevelConfigServiceImpl) Update(cluster string, data []byte) (config model.LevelConfig, err error) {
 	return c.LevelConfigService.Update(model.Cluster, c.IdService.ClusterId(cluster), data)
 }
 
-func (c *clusterLevelConfigServiceImpl) Query(cluster string, query string) (*model.LevelConfig, error) {
+func (c *clusterLevelConfigServiceImpl) Query(cluster string, query string) (model.LevelConfig, error) {
 	return c.LevelConfigService.Query(model.Cluster, c.IdService.ClusterId(cluster), query)
 }
 

@@ -3,6 +3,7 @@ module config-manager
 go 1.12
 
 require (
+	github.com/Jeffail/gabs v1.3.1
 	github.com/dgrijalva/jwt-go v3.2.0+incompatible // indirect
 	github.com/eddieowens/axon v0.4.0
 	github.com/imdario/mergo v0.3.7

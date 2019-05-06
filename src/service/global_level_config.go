@@ -8,7 +8,7 @@ import (
 const GlobalLevelConfigServiceKey = "GlobalLevelConfigService"
 
 type GlobalLevelConfigService interface {
-	Query(query string) (*model.LevelConfig, error)
+	Query(query string) (model.LevelConfig, error)
 	Create(data []byte) (model.LevelConfig, error)
 	Rollback(version int) (model.LevelConfig, error)
 	Update(data []byte) (config model.LevelConfig, err error)
@@ -22,7 +22,7 @@ func (g *globalLevelConfigServiceImpl) Update(data []byte) (config model.LevelCo
 	return g.LevelConfigService.Update(model.Global, state.GlobalId, data)
 }
 
-func (g *globalLevelConfigServiceImpl) Query(query string) (*model.LevelConfig, error) {
+func (g *globalLevelConfigServiceImpl) Query(query string) (model.LevelConfig, error) {
 	return g.LevelConfigService.Query(model.Global, state.GlobalId, query)
 }
 

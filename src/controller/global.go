@@ -20,6 +20,10 @@ type globalControllerImpl struct {
 	LevelConfigService service.GlobalLevelConfigService `inject:"GlobalLevelConfigService"`
 }
 
+func (g *globalControllerImpl) MergedQuery(c echo.Context) error {
+	return g.Query(c)
+}
+
 func (g *globalControllerImpl) Update(c echo.Context) error {
 	data, err := ioutil.ReadAll(c.Request().Body)
 	if err != nil {
@@ -86,6 +90,7 @@ func (g *globalControllerImpl) GetRoutes() []model.Route {
 		model.NewRoute(http.MethodPost, "/api/admin/config", g.Create),
 		model.NewRoute(http.MethodPut, "/api/admin/config/rollback/:version", g.Rollback),
 		model.NewRoute(http.MethodPut, "/api/admin/config", g.Update),
-		model.NewRoute(http.MethodGet, "/api/config", g.Query),
+		model.NewRoute(http.MethodGet, "/api/admin/config", g.Query),
+		model.NewRoute(http.MethodGet, "/api/config", g.MergedQuery),
 	}
 }

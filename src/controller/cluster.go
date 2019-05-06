@@ -20,6 +20,22 @@ type clusterControllerImpl struct {
 	LevelConfigService service.ClusterLevelConfigService `inject:"ClusterLevelConfigService"`
 }
 
+func (cc *clusterControllerImpl) MergedQuery(c echo.Context) error {
+	key := c.QueryParam("key")
+	cluster := c.Param("cluster")
+
+	if cluster == "" {
+		return c.NoContent(http.StatusNotFound)
+	}
+
+	data, err := cc.LevelConfigService.MergedQuery(cluster, key)
+	if err != nil {
+		return err
+	}
+
+	return c.JSON(http.StatusOK, data)
+}
+
 func (cc *clusterControllerImpl) Update(c echo.Context) error {
 	cluster := c.Param("cluster")
 
@@ -104,6 +120,7 @@ func (cc *clusterControllerImpl) GetRoutes() []model.Route {
 		model.NewRoute(http.MethodPost, "/api/admin/config/:cluster", cc.Create),
 		model.NewRoute(http.MethodPut, "/api/admin/config/:cluster/rollback/:version", cc.Rollback),
 		model.NewRoute(http.MethodPut, "/api/admin/config/:cluster", cc.Update),
-		model.NewRoute(http.MethodGet, "/api/config/:cluster", cc.Query),
+		model.NewRoute(http.MethodGet, "/api/admin/config/:cluster", cc.Query),
+		model.NewRoute(http.MethodGet, "/api/config/:cluster", cc.MergedQuery),
 	}
 }

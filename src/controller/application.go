@@ -20,6 +20,24 @@ type applicationControllerImpl struct {
 	LevelConfigService service.ApplicationLevelConfigService `inject:"ApplicationLevelConfigService"`
 }
 
+func (a *applicationControllerImpl) MergedQuery(c echo.Context) error {
+	key := c.QueryParam("key")
+	cluster := c.Param("cluster")
+	namespace := c.Param("namespace")
+	application := c.Param("application")
+
+	if application == "" || namespace == "" || cluster == "" {
+		return c.NoContent(http.StatusNotFound)
+	}
+
+	data, err := a.LevelConfigService.MergedQuery(cluster, namespace, application, key)
+	if err != nil {
+		return err
+	}
+
+	return c.JSON(http.StatusOK, data)
+}
+
 func (a *applicationControllerImpl) Update(c echo.Context) error {
 	cluster := c.Param("cluster")
 	namespace := c.Param("namespace")
@@ -118,6 +136,7 @@ func (a *applicationControllerImpl) GetRoutes() []model.Route {
 		model.NewRoute(http.MethodPost, "/api/admin/config/:cluster/:namespace/:application", a.Create),
 		model.NewRoute(http.MethodPut, "/api/admin/config/:cluster/:namespace/:application/rollback/:version", a.Rollback),
 		model.NewRoute(http.MethodPut, "/api/admin/config/:cluster/:namespace/:application", a.Update),
-		model.NewRoute(http.MethodGet, "/api/config/:cluster/:namespace/:application", a.Query),
+		model.NewRoute(http.MethodGet, "/api/admin/config/:cluster/:namespace/:application", a.Query),
+		model.NewRoute(http.MethodGet, "/api/config/:cluster/:namespace/:application", a.MergedQuery),
 	}
 }

@@ -12,6 +12,8 @@ const IdSeparator = "~"
 
 type IdService interface {
 	Name(id model.Id) string
+	Names(id model.Id) []string
+	Id(names ...string) model.Id
 	GlobalId() model.Id
 	ClusterId(name string) model.Id
 	NamespaceId(name, cluster string) model.Id
@@ -20,6 +22,14 @@ type IdService interface {
 }
 
 type idServiceImpl struct {
+}
+
+func (i *idServiceImpl) Id(names ...string) model.Id {
+	return model.Id(strings.Join(names, IdSeparator))
+}
+
+func (i *idServiceImpl) Names(id model.Id) []string {
+	return strings.Split(id.String(), IdSeparator)
 }
 
 func (i *idServiceImpl) Name(id model.Id) string {
@@ -32,25 +42,21 @@ func (i *idServiceImpl) GlobalId() model.Id {
 }
 
 func (i *idServiceImpl) ClusterId(name string) model.Id {
-	return i.toId(name)
+	return i.Id(name)
 }
 
 func (i *idServiceImpl) NamespaceId(name, cluster string) model.Id {
-	return i.toId(cluster, name)
+	return i.Id(cluster, name)
 }
 
 func (i *idServiceImpl) ApplicationId(name, namespace, cluster string) model.Id {
-	return i.toId(cluster, namespace, name)
+	return i.Id(cluster, namespace, name)
 }
 
 func (i *idServiceImpl) VersionedId(id model.Id, version int) model.Id {
 	ver := strconv.Itoa(version)
 	idSlice := append([]string{id.String()}, ver)
 	return model.Id(strings.Join(idSlice, IdSeparator))
-}
-
-func (i *idServiceImpl) toId(names ...string) model.Id {
-	return model.Id(strings.Join(names, IdSeparator))
 }
 
 func (i *idServiceImpl) ToName(id model.Id) string {

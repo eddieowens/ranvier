@@ -13,5 +13,6 @@ func (*Module) Bindings() []axon.Binding {
 		axon.Bind(ClusterLevelConfigServiceKey).To().Instance(axon.StructPtr(new(clusterLevelConfigServiceImpl))),
 		axon.Bind(NamespaceLevelConfigServiceKey).To().Instance(axon.StructPtr(new(namespaceLevelConfigServiceImpl))),
 		axon.Bind(ApplicationLevelConfigServiceKey).To().Instance(axon.StructPtr(new(applicationLevelConfigServiceImpl))),
+		axon.Bind(MergeServiceKey).To().Instance(axon.StructPtr(new(mergeServiceImpl))),
 	}
 }

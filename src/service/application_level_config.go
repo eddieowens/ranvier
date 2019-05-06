@@ -11,7 +11,8 @@ import (
 const ApplicationLevelConfigServiceKey = "ApplicationLevelConfigService"
 
 type ApplicationLevelConfigService interface {
-	Query(cluster string, namespace string, application string, query string) (*model.LevelConfig, error)
+	Query(cluster string, namespace string, application string, query string) (config model.LevelConfig, err error)
+	MergedQuery(cluster, namespace, application string, query string) (config model.LevelConfig, err error)
 	Create(cluster string, namespace string, application string, data []byte) (model.LevelConfig, error)
 	Rollback(cluster string, namespace string, application string, version int) (config model.LevelConfig, err error)
 	Update(cluster, namespace, application string, data []byte) (config model.LevelConfig, err error)
@@ -20,6 +21,16 @@ type ApplicationLevelConfigService interface {
 type applicationLevelConfigServiceImpl struct {
 	LevelConfigService LevelConfigService `inject:"LevelConfigService"`
 	IdService          state.IdService    `inject:"IdService"`
+}
+
+func (a *applicationLevelConfigServiceImpl) MergedQuery(cluster, namespace, application string, query string) (config model.LevelConfig, err error) {
+	if err := a.exists(cluster, namespace); err != nil {
+		return config, err
+	}
+
+	id := a.IdService.ApplicationId(application, namespace, cluster)
+
+	return a.LevelConfigService.MergedQuery(model.Application, id, query)
 }
 
 func (a *applicationLevelConfigServiceImpl) Update(cluster, namespace, application string, data []byte) (config model.LevelConfig, err error) {
@@ -32,9 +43,9 @@ func (a *applicationLevelConfigServiceImpl) Update(cluster, namespace, applicati
 	return a.LevelConfigService.Update(model.Application, id, data)
 }
 
-func (a *applicationLevelConfigServiceImpl) Query(cluster string, namespace string, application string, query string) (*model.LevelConfig, error) {
+func (a *applicationLevelConfigServiceImpl) Query(cluster string, namespace string, application string, query string) (config model.LevelConfig, err error) {
 	if err := a.exists(cluster, namespace); err != nil {
-		return nil, err
+		return config, err
 	}
 
 	id := a.IdService.ApplicationId(application, namespace, cluster)
