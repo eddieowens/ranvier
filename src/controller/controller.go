@@ -2,7 +2,7 @@ package controller
 
 import (
 	"github.com/labstack/echo"
-	"github.com/two-rabbits/ranvier/model"
+	"github.com/two-rabbits/ranvier/src/model"
 )
 
 type Controller interface {
