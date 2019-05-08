@@ -1,10 +1,10 @@
 package service
 
 import (
-	"config-manager/src/collections"
 	"fmt"
 	"github.com/Jeffail/gabs"
 	"github.com/imdario/mergo"
+	"github.com/two-rabbits/ranvier/src/collections"
 	"reflect"
 )
 

@@ -1,9 +1,9 @@
 package state
 
 import (
-	"config-manager/src/collections"
-	"config-manager/src/model"
 	"github.com/json-iterator/go"
+	"github.com/two-rabbits/ranvier/src/collections"
+	"github.com/two-rabbits/ranvier/src/model"
 )
 
 const LevelConfigQueryServiceKey = "LevelConfigQueryService"

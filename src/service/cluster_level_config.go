@@ -1,8 +1,8 @@
 package service
 
 import (
-	"config-manager/src/model"
-	"config-manager/src/state"
+	"github.com/two-rabbits/ranvier/src/model"
+	"github.com/two-rabbits/ranvier/src/state"
 )
 
 const ClusterLevelConfigServiceKey = "ClusterLevelConfigService"

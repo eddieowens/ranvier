@@ -1,7 +1,7 @@
 package main
 
 import (
-	"config-manager/src"
+	"github.com/two-rabbits/ranvier/src"
 )
 
 func main() {

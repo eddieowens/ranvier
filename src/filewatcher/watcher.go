@@ -1,12 +1,12 @@
 package filewatcher
 
 import (
-	"config-manager/src/configuration"
-	"config-manager/src/service"
-	"config-manager/src/state"
 	"fmt"
 	"github.com/eddieowens/axon"
 	"github.com/radovskyb/watcher"
+	"github.com/two-rabbits/ranvier/src/configuration"
+	"github.com/two-rabbits/ranvier/src/service"
+	"github.com/two-rabbits/ranvier/src/state"
 	"io/ioutil"
 	"log"
 	"regexp"

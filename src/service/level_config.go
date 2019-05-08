@@ -1,12 +1,12 @@
 package service
 
 import (
-	"config-manager/src/collections"
-	"config-manager/src/model"
-	"config-manager/src/state"
 	"fmt"
 	"github.com/json-iterator/go"
 	"github.com/labstack/echo"
+	"github.com/two-rabbits/ranvier/src/collections"
+	"github.com/two-rabbits/ranvier/src/model"
+	"github.com/two-rabbits/ranvier/src/state"
 	"net/http"
 )
 

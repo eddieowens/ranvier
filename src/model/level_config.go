@@ -1,7 +1,7 @@
 package model
 
 import (
-	"config-manager/src/collections"
+	"github.com/two-rabbits/ranvier/src/collections"
 )
 
 type LevelConfig struct {

@@ -1,11 +1,11 @@
 package src
 
 import (
-	"config-manager/src/filewatcher"
-	"config-manager/src/router"
-	"config-manager/src/state"
 	"github.com/labstack/echo"
 	"github.com/labstack/echo/middleware"
+	"github.com/two-rabbits/ranvier/src/filewatcher"
+	"github.com/two-rabbits/ranvier/src/router"
+	"github.com/two-rabbits/ranvier/src/state"
 )
 
 const AppKey = "App"

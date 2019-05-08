@@ -1,8 +1,8 @@
 package router
 
 import (
-	"config-manager/src/controller"
 	"github.com/labstack/echo"
+	"github.com/two-rabbits/ranvier/src/controller"
 )
 
 const RouterKey = "Router"

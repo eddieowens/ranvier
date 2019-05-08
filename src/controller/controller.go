@@ -1,8 +1,8 @@
 package controller
 
 import (
-	"config-manager/src/model"
 	"github.com/labstack/echo"
+	"github.com/two-rabbits/ranvier/model"
 )
 
 type Controller interface {

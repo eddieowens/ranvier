@@ -1,10 +1,10 @@
 package controller
 
 import (
-	"config-manager/src/model"
-	"config-manager/src/service"
 	"github.com/labstack/echo"
 	"github.com/tidwall/gjson"
+	"github.com/two-rabbits/ranvier/src/model"
+	"github.com/two-rabbits/ranvier/src/service"
 	"io/ioutil"
 	"net/http"
 	"strconv"

@@ -1,9 +1,9 @@
 package state
 
 import (
-	"config-manager/src/model"
 	"github.com/eddieowens/axon"
 	"github.com/json-iterator/go"
+	"github.com/two-rabbits/ranvier/src/model"
 	"sync"
 )
 

@@ -1,8 +1,9 @@
-module config-manager
+module github.com/two-rabbits/ranvier
 
 go 1.12
 
 require (
+	github.com/BurntSushi/toml v0.3.1 // indirect
 	github.com/Jeffail/gabs v1.3.1
 	github.com/dgrijalva/jwt-go v3.2.0+incompatible // indirect
 	github.com/eddieowens/axon v0.4.0

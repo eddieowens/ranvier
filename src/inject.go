@@ -1,13 +1,13 @@
 package src
 
 import (
-	"config-manager/src/configuration"
-	"config-manager/src/controller"
-	"config-manager/src/filewatcher"
-	"config-manager/src/router"
-	"config-manager/src/service"
-	"config-manager/src/state"
 	"github.com/eddieowens/axon"
+	"github.com/two-rabbits/ranvier/src/configuration"
+	"github.com/two-rabbits/ranvier/src/controller"
+	"github.com/two-rabbits/ranvier/src/filewatcher"
+	"github.com/two-rabbits/ranvier/src/router"
+	"github.com/two-rabbits/ranvier/src/service"
+	"github.com/two-rabbits/ranvier/src/state"
 )
 
 var Injector axon.Injector

@@ -1,12 +1,12 @@
 package service
 
 import (
-	"config-manager/src/collections"
-	"config-manager/src/configuration"
-	"config-manager/src/model"
-	"config-manager/src/state"
 	"errors"
 	"github.com/json-iterator/go"
+	"github.com/two-rabbits/ranvier/src/collections"
+	"github.com/two-rabbits/ranvier/src/configuration"
+	"github.com/two-rabbits/ranvier/src/model"
+	"github.com/two-rabbits/ranvier/src/state"
 	"io/ioutil"
 	"os"
 	"path"

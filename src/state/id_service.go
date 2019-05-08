@@ -1,7 +1,7 @@
 package state
 
 import (
-	"config-manager/src/model"
+	"github.com/two-rabbits/ranvier/src/model"
 	"strconv"
 	"strings"
 )
