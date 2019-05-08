@@ -87,10 +87,10 @@ func (g *globalControllerImpl) Create(c echo.Context) error {
 
 func (g *globalControllerImpl) GetRoutes() []model.Route {
 	return []model.Route{
-		model.NewRoute(http.MethodPost, "/api/admin/config", g.Create),
-		model.NewRoute(http.MethodPut, "/api/admin/config/rollback/:version", g.Rollback),
-		model.NewRoute(http.MethodPut, "/api/admin/config", g.Update),
-		model.NewRoute(http.MethodGet, "/api/admin/config", g.Query),
-		model.NewRoute(http.MethodGet, "/api/config", g.MergedQuery),
+		model.NewRoute(http.MethodPost, "/config", true, g.Create),
+		model.NewRoute(http.MethodPut, "/config/rollback/:version", true, g.Rollback),
+		model.NewRoute(http.MethodPut, "/config", true, g.Update),
+		model.NewRoute(http.MethodGet, "/config", true, g.Query),
+		model.NewRoute(http.MethodGet, "/config", false, g.MergedQuery),
 	}
 }

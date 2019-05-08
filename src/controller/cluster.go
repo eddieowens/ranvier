@@ -117,10 +117,10 @@ func (cc *clusterControllerImpl) Create(c echo.Context) error {
 
 func (cc *clusterControllerImpl) GetRoutes() []model.Route {
 	return []model.Route{
-		model.NewRoute(http.MethodPost, "/api/admin/config/:cluster", cc.Create),
-		model.NewRoute(http.MethodPut, "/api/admin/config/:cluster/rollback/:version", cc.Rollback),
-		model.NewRoute(http.MethodPut, "/api/admin/config/:cluster", cc.Update),
-		model.NewRoute(http.MethodGet, "/api/admin/config/:cluster", cc.Query),
-		model.NewRoute(http.MethodGet, "/api/config/:cluster", cc.MergedQuery),
+		model.NewRoute(http.MethodPost, "/config/:cluster", true, cc.Create),
+		model.NewRoute(http.MethodPut, "/config/:cluster/rollback/:version", true, cc.Rollback),
+		model.NewRoute(http.MethodPut, "/config/:cluster", true, cc.Update),
+		model.NewRoute(http.MethodGet, "/config/:cluster", true, cc.Query),
+		model.NewRoute(http.MethodGet, "/config/:cluster", false, cc.MergedQuery),
 	}
 }

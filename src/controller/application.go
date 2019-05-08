@@ -133,10 +133,10 @@ func (a *applicationControllerImpl) Create(c echo.Context) error {
 
 func (a *applicationControllerImpl) GetRoutes() []model.Route {
 	return []model.Route{
-		model.NewRoute(http.MethodPost, "/api/admin/config/:cluster/:namespace/:application", a.Create),
-		model.NewRoute(http.MethodPut, "/api/admin/config/:cluster/:namespace/:application/rollback/:version", a.Rollback),
-		model.NewRoute(http.MethodPut, "/api/admin/config/:cluster/:namespace/:application", a.Update),
-		model.NewRoute(http.MethodGet, "/api/admin/config/:cluster/:namespace/:application", a.Query),
-		model.NewRoute(http.MethodGet, "/api/config/:cluster/:namespace/:application", a.MergedQuery),
+		model.NewRoute(http.MethodPost, "/config/:cluster/:namespace/:application", true, a.Create),
+		model.NewRoute(http.MethodPut, "/config/:cluster/:namespace/:application/rollback/:version", true, a.Rollback),
+		model.NewRoute(http.MethodPut, "/config/:cluster/:namespace/:application", true, a.Update),
+		model.NewRoute(http.MethodGet, "/config/:cluster/:namespace/:application", true, a.Query),
+		model.NewRoute(http.MethodGet, "/config/:cluster/:namespace/:application", false, a.MergedQuery),
 	}
 }

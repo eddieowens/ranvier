@@ -128,10 +128,10 @@ func (n *namespaceControllerImpl) Create(c echo.Context) error {
 
 func (n *namespaceControllerImpl) GetRoutes() []model.Route {
 	return []model.Route{
-		model.NewRoute(http.MethodPost, "/api/admin/config/:cluster/:namespace", n.Create),
-		model.NewRoute(http.MethodPut, "/api/admin/config/:cluster/:namespace/rollback/:version", n.Rollback),
-		model.NewRoute(http.MethodPut, "/api/admin/config/:cluster/:namespace", n.Update),
-		model.NewRoute(http.MethodGet, "/api/admin/config/:cluster/:namespace", n.Query),
-		model.NewRoute(http.MethodGet, "/api/config/:cluster/:namespace", n.MergedQuery),
+		model.NewRoute(http.MethodPost, "/config/:cluster/:namespace", true, n.Create),
+		model.NewRoute(http.MethodPut, "/config/:cluster/:namespace/rollback/:version", true, n.Rollback),
+		model.NewRoute(http.MethodPut, "/config/:cluster/:namespace", true, n.Update),
+		model.NewRoute(http.MethodGet, "/config/:cluster/:namespace", true, n.Query),
+		model.NewRoute(http.MethodGet, "/config/:cluster/:namespace", false, n.MergedQuery),
 	}
 }
