@@ -1,13 +1,16 @@
 package controller
 
 import (
+	"fmt"
 	"github.com/labstack/echo"
 	"github.com/tidwall/gjson"
 	"github.com/two-rabbits/ranvier/src/model"
 	"github.com/two-rabbits/ranvier/src/service"
+	"github.com/two-rabbits/ranvier/src/state"
 	"io/ioutil"
 	"net/http"
 	"strconv"
+	"strings"
 )
 
 const ApplicationControllerKey = "ApplicationController"
@@ -132,6 +135,10 @@ func (a *applicationControllerImpl) Create(c echo.Context) error {
 
 	if application == "" || namespace == "" || cluster == "" {
 		return c.NoContent(http.StatusBadRequest)
+	}
+
+	if strings.Contains(application, state.IdSeparator) {
+		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("the application name cannot contain a %s character", state.IdSeparator))
 	}
 
 	data, err := ioutil.ReadAll(c.Request().Body)

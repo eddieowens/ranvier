@@ -1,13 +1,16 @@
 package controller
 
 import (
+	"fmt"
 	"github.com/labstack/echo"
 	"github.com/tidwall/gjson"
 	"github.com/two-rabbits/ranvier/src/model"
 	"github.com/two-rabbits/ranvier/src/service"
+	"github.com/two-rabbits/ranvier/src/state"
 	"io/ioutil"
 	"net/http"
 	"strconv"
+	"strings"
 )
 
 const ClusterControllerKey = "ClusterController"
@@ -108,6 +111,10 @@ func (cc *clusterControllerImpl) Create(c echo.Context) error {
 	cluster := c.Param("cluster")
 	if cluster == "" {
 		return c.NoContent(http.StatusBadRequest)
+	}
+
+	if strings.Contains(cluster, state.IdSeparator) {
+		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("the cluster name cannot contain a %s character", state.IdSeparator))
 	}
 
 	data, err := ioutil.ReadAll(c.Request().Body)
