@@ -19,6 +19,7 @@ type LevelConfigService interface {
 	Create(level model.Level, id model.Id, data []byte) (config model.LevelConfig, err error)
 	Rollback(level model.Level, id model.Id, version int) (config model.LevelConfig, err error)
 	Exists(level model.Level, id model.Id) bool
+	GetAll(level model.Level) []model.LevelConfig
 }
 
 type levelConfigServiceImpl struct {
@@ -29,6 +30,10 @@ type levelConfigServiceImpl struct {
 	LevelConfigQueryService state.LevelConfigQueryService `inject:"LevelConfigQueryService"`
 	MergeService            MergeService                  `inject:"MergeService"`
 	Json                    jsoniter.API                  `inject:"Json"`
+}
+
+func (l *levelConfigServiceImpl) GetAll(level model.Level) []model.LevelConfig {
+	return l.State.GetAll(level)
 }
 
 func (l *levelConfigServiceImpl) MergedQuery(level model.Level, id model.Id, query string) (config model.LevelConfig, err error) {

@@ -20,6 +20,15 @@ type globalControllerImpl struct {
 	LevelConfigService service.GlobalLevelConfigService `inject:"GlobalLevelConfigService"`
 }
 
+func (g *globalControllerImpl) GetAll(c echo.Context) error {
+	resp, err := g.LevelConfigService.GetAll()
+	if err != nil {
+		return err
+	}
+
+	return c.JSON(http.StatusOK, resp)
+}
+
 func (g *globalControllerImpl) MergedQuery(c echo.Context) error {
 	return g.Query(c)
 }
@@ -91,6 +100,7 @@ func (g *globalControllerImpl) GetRoutes() []model.Route {
 		model.NewRoute(http.MethodPut, "/config/rollback/:version", true, g.Rollback),
 		model.NewRoute(http.MethodPut, "/config", true, g.Update),
 		model.NewRoute(http.MethodGet, "/config", true, g.Query),
+		model.NewRoute(http.MethodGet, "/config/global", true, g.GetAll),
 		model.NewRoute(http.MethodGet, "/config", false, g.MergedQuery),
 	}
 }

@@ -3,6 +3,7 @@ package service
 import (
 	"fmt"
 	"github.com/labstack/echo"
+	"github.com/two-rabbits/ranvier/src/exchange/response"
 	"github.com/two-rabbits/ranvier/src/model"
 	"github.com/two-rabbits/ranvier/src/state"
 	"net/http"
@@ -16,11 +17,37 @@ type ApplicationLevelConfigService interface {
 	Create(cluster string, namespace string, application string, data []byte) (model.LevelConfig, error)
 	Rollback(cluster string, namespace string, application string, version int) (config model.LevelConfig, err error)
 	Update(cluster, namespace, application string, data []byte) (config model.LevelConfig, err error)
+	GetAll(clusterName string, namespaceName string) (resp response.ApplicationLevelConfigMeta, err error)
 }
 
 type applicationLevelConfigServiceImpl struct {
 	LevelConfigService LevelConfigService `inject:"LevelConfigService"`
 	IdService          state.IdService    `inject:"IdService"`
+	MappingService     MappingService     `inject:"MappingService"`
+	LevelService       state.LevelService `inject:"LevelService"`
+}
+
+func (a *applicationLevelConfigServiceImpl) GetAll(clusterName string, namespaceName string) (resp response.ApplicationLevelConfigMeta, err error) {
+	if err := a.exists(clusterName, namespaceName); err != nil {
+		return resp, err
+	}
+
+	global, _ := a.LevelConfigService.Query(model.Global, state.GlobalId, "")
+	cluster, _ := a.LevelConfigService.Query(model.Cluster, a.IdService.ClusterId(clusterName), "")
+	namespace, _ := a.LevelConfigService.Query(model.Namespace, a.IdService.NamespaceId(namespaceName, clusterName), "")
+	applications := a.LevelConfigService.GetAll(model.Application)
+
+	resp.Data.Global = a.MappingService.ToLevelConfigMetaData(&global)
+	resp.Data.Cluster = a.MappingService.ToLevelConfigMetaData(&cluster)
+	resp.Data.Namespace = a.MappingService.ToLevelConfigMetaData(&namespace)
+
+	apps := make([]response.LevelConfigMetaData, len(applications))
+	for i := range applications {
+		apps[i] = a.MappingService.ToLevelConfigMetaData(&applications[i])
+	}
+	resp.Data.Applications = apps
+
+	return resp, nil
 }
 
 func (a *applicationLevelConfigServiceImpl) MergedQuery(cluster, namespace, application string, query string) (config model.LevelConfig, err error) {

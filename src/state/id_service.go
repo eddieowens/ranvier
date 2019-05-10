@@ -19,9 +19,21 @@ type IdService interface {
 	NamespaceId(name, cluster string) model.Id
 	ApplicationId(name, namespace, cluster string) model.Id
 	VersionedId(id model.Id, version int) model.Id
+	IsVersionedId(id model.Id) bool
 }
 
 type idServiceImpl struct {
+}
+
+func (i *idServiceImpl) IsVersionedId(id model.Id) bool {
+	n := strings.Split(id.String(), IdSeparator)
+	if len(n) <= 0 {
+		return false
+	}
+	if _, err := strconv.Atoi(n[len(n)-1]); err != nil {
+		return false
+	}
+	return true
 }
 
 func (i *idServiceImpl) Id(names ...string) model.Id {

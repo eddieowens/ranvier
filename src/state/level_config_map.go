@@ -9,12 +9,13 @@ import (
 
 type WriteRunner func(config model.LevelConfig, exists bool, saver Saver) error
 type ReadRunner func(config model.LevelConfig, exists bool) error
-
 type Saver func(config model.LevelConfig)
+type GetAllFilter func(id model.Id, config model.LevelConfig) bool
 
 type LevelConfigMap interface {
 	Set(levelConfig model.LevelConfig)
 	Get(id model.Id) (model.LevelConfig, bool)
+	GetAll(filter GetAllFilter) []model.LevelConfig
 	WithLock(id model.Id, runner WriteRunner) error
 	WithReadLock(id model.Id, runner ReadRunner) error
 }
@@ -30,6 +31,20 @@ type levelConfigMapImpl struct {
 	m    map[model.Id]model.LevelConfig
 	lock sync.RWMutex
 	Json jsoniter.API `inject:"Json"`
+}
+
+func (s *levelConfigMapImpl) GetAll(filter GetAllFilter) []model.LevelConfig {
+	s.lock.RLock()
+	defer s.lock.RUnlock()
+	sl := make([]model.LevelConfig, 0)
+	for k, v := range s.m {
+		if filter == nil {
+			sl = append(sl, v)
+		} else if filter(k, v) {
+			sl = append(sl, v)
+		}
+	}
+	return sl
 }
 
 func (s *levelConfigMapImpl) WithLock(id model.Id, runner WriteRunner) error {

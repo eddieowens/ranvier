@@ -13,11 +13,24 @@ import (
 const ClusterControllerKey = "ClusterController"
 
 type ClusterController interface {
-	LevelConfigController
+	StratifiedLevelConfigController
 }
 
 type clusterControllerImpl struct {
 	LevelConfigService service.ClusterLevelConfigService `inject:"ClusterLevelConfigService"`
+}
+
+func (cc *clusterControllerImpl) GetAll(c echo.Context) error {
+	resp, err := cc.LevelConfigService.GetAll()
+	if err != nil {
+		return err
+	}
+
+	return c.JSON(http.StatusOK, resp)
+}
+
+func (cc *clusterControllerImpl) Get(c echo.Context) error {
+	panic("implement me")
 }
 
 func (cc *clusterControllerImpl) MergedQuery(c echo.Context) error {
@@ -121,6 +134,8 @@ func (cc *clusterControllerImpl) GetRoutes() []model.Route {
 		model.NewRoute(http.MethodPut, "/config/:cluster/rollback/:version", true, cc.Rollback),
 		model.NewRoute(http.MethodPut, "/config/:cluster", true, cc.Update),
 		model.NewRoute(http.MethodGet, "/config/:cluster", true, cc.Query),
+		model.NewRoute(http.MethodGet, "/config/clusters", true, cc.GetAll),
+		model.NewRoute(http.MethodGet, "/config/clusters/:name", true, cc.Get),
 		model.NewRoute(http.MethodGet, "/config/:cluster", false, cc.MergedQuery),
 	}
 }

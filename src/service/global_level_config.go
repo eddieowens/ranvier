@@ -1,6 +1,7 @@
 package service
 
 import (
+	"github.com/two-rabbits/ranvier/src/exchange/response"
 	"github.com/two-rabbits/ranvier/src/model"
 	"github.com/two-rabbits/ranvier/src/state"
 )
@@ -12,10 +13,22 @@ type GlobalLevelConfigService interface {
 	Create(data []byte) (model.LevelConfig, error)
 	Rollback(version int) (model.LevelConfig, error)
 	Update(data []byte) (config model.LevelConfig, err error)
+	GetAll() (resp response.GlobalLevelConfigMeta, err error)
 }
 
 type globalLevelConfigServiceImpl struct {
 	LevelConfigService LevelConfigService `inject:"LevelConfigService"`
+	MappingService     MappingService     `inject:"MappingService"`
+}
+
+func (g *globalLevelConfigServiceImpl) GetAll() (resp response.GlobalLevelConfigMeta, err error) {
+	globalConfig := g.LevelConfigService.GetAll(model.Global)
+	if len(globalConfig) > 0 {
+		meta := g.MappingService.ToLevelConfigMetaData(&globalConfig[0])
+		resp.Data = meta
+		return resp, nil
+	}
+	return resp, nil
 }
 
 func (g *globalLevelConfigServiceImpl) Update(data []byte) (config model.LevelConfig, err error) {

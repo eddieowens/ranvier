@@ -16,4 +16,10 @@ type LevelConfigController interface {
 	Rollback(c echo.Context) error
 	Update(c echo.Context) error
 	MergedQuery(c echo.Context) error
+	GetAll(c echo.Context) error
+}
+
+type StratifiedLevelConfigController interface {
+	LevelConfigController
+	Get(c echo.Context) error
 }

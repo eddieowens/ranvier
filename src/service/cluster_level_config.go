@@ -1,6 +1,7 @@
 package service
 
 import (
+	"github.com/two-rabbits/ranvier/src/exchange/response"
 	"github.com/two-rabbits/ranvier/src/model"
 	"github.com/two-rabbits/ranvier/src/state"
 )
@@ -13,11 +14,28 @@ type ClusterLevelConfigService interface {
 	Create(cluster string, data []byte) (model.LevelConfig, error)
 	Update(cluster string, data []byte) (config model.LevelConfig, err error)
 	Rollback(cluster string, version int) (model.LevelConfig, error)
+	GetAll() (resp response.ClusterLevelConfigMeta, err error)
 }
 
 type clusterLevelConfigServiceImpl struct {
 	LevelConfigService LevelConfigService `inject:"LevelConfigService"`
 	IdService          state.IdService    `inject:"IdService"`
+	MappingService     MappingService     `inject:"MappingService"`
+}
+
+func (c *clusterLevelConfigServiceImpl) GetAll() (resp response.ClusterLevelConfigMeta, err error) {
+	global, _ := c.LevelConfigService.Query(model.Global, state.GlobalId, "")
+	clusters := c.LevelConfigService.GetAll(model.Cluster)
+
+	resp.Data.Global = c.MappingService.ToLevelConfigMetaData(&global)
+
+	clstrs := make([]response.LevelConfigMetaData, len(clusters))
+	for i := range clusters {
+		clstrs[i] = c.MappingService.ToLevelConfigMetaData(&clusters[i])
+	}
+	resp.Data.Clusters = clstrs
+
+	return resp, nil
 }
 
 func (c *clusterLevelConfigServiceImpl) MergedQuery(cluster string, query string) (model.LevelConfig, error) {
