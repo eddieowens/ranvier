@@ -39,7 +39,19 @@ func (n *namespaceControllerImpl) GetAll(c echo.Context) error {
 }
 
 func (n *namespaceControllerImpl) Get(c echo.Context) error {
-	panic("implement me")
+	namespace := c.Param("name")
+	cluster := c.Param("cluster")
+
+	if namespace == "" || cluster == "" {
+		return c.NoContent(http.StatusBadRequest)
+	}
+
+	data, err := n.LevelConfigService.Get(cluster, namespace)
+	if err != nil {
+		return err
+	}
+
+	return c.JSON(http.StatusOK, data)
 }
 
 func (n *namespaceControllerImpl) MergedQuery(c echo.Context) error {

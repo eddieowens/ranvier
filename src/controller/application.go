@@ -40,7 +40,20 @@ func (a *applicationControllerImpl) GetAll(c echo.Context) error {
 }
 
 func (a *applicationControllerImpl) Get(c echo.Context) error {
-	panic("implement me")
+	cluster := c.Param("cluster")
+	namespace := c.Param("namespace")
+	application := c.Param("name")
+
+	if application == "" || namespace == "" || cluster == "" {
+		return c.NoContent(http.StatusNotFound)
+	}
+
+	data, err := a.LevelConfigService.Get(cluster, namespace, application)
+	if err != nil {
+		return err
+	}
+
+	return c.JSON(http.StatusOK, data)
 }
 
 func (a *applicationControllerImpl) MergedQuery(c echo.Context) error {

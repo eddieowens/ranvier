@@ -33,7 +33,18 @@ func (cc *clusterControllerImpl) GetAll(c echo.Context) error {
 }
 
 func (cc *clusterControllerImpl) Get(c echo.Context) error {
-	panic("implement me")
+	cluster := c.Param("name")
+
+	if cluster == "" {
+		return c.NoContent(http.StatusNotFound)
+	}
+
+	data, err := cc.LevelConfigService.Get(cluster)
+	if err != nil {
+		return err
+	}
+
+	return c.JSON(http.StatusOK, data)
 }
 
 func (cc *clusterControllerImpl) MergedQuery(c echo.Context) error {

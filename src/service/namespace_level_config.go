@@ -17,7 +17,8 @@ type NamespaceLevelConfigService interface {
 	Create(cluster string, namespace string, data []byte) (model.LevelConfig, error)
 	Rollback(cluster string, namespace string, version int) (config model.LevelConfig, err error)
 	Update(cluster, namespace string, data []byte) (config model.LevelConfig, err error)
-	GetAll(clusterName string) (resp response.NamespaceLevelConfigMeta, err error)
+	GetAll(clusterName string) (resp response.NamespacesLevelConfigMeta, err error)
+	Get(clusterName string, namespaceName string) (resp response.NamespaceLevelConfigMeta, err error)
 }
 
 type namespaceLevelConfigServiceImpl struct {
@@ -26,7 +27,26 @@ type namespaceLevelConfigServiceImpl struct {
 	MappingService     MappingService     `inject:"MappingService"`
 }
 
-func (n *namespaceLevelConfigServiceImpl) GetAll(clusterName string) (resp response.NamespaceLevelConfigMeta, err error) {
+func (n *namespaceLevelConfigServiceImpl) Get(clusterName string, namespaceName string) (resp response.NamespaceLevelConfigMeta, err error) {
+	if exists := n.LevelConfigService.Exists(model.Cluster, n.IdService.ClusterId(clusterName)); !exists {
+		return resp, echo.NewHTTPError(http.StatusNotFound, fmt.Sprintf("%s is not n valid cluster", clusterName))
+	}
+
+	global, _ := n.LevelConfigService.Query(model.Global, state.GlobalId, "")
+	cluster, _ := n.LevelConfigService.Query(model.Cluster, n.IdService.ClusterId(clusterName), "")
+	namespace, err := n.LevelConfigService.Query(model.Namespace, n.IdService.NamespaceId(namespaceName, clusterName), "")
+	if err != nil {
+		return resp, err
+	}
+
+	resp.Global = n.MappingService.ToLevelConfigMeta(&global)
+	resp.Cluster = n.MappingService.ToLevelConfigMeta(&cluster)
+	resp.Namespace = n.MappingService.ToLevelConfigMeta(&namespace)
+
+	return resp, nil
+}
+
+func (n *namespaceLevelConfigServiceImpl) GetAll(clusterName string) (resp response.NamespacesLevelConfigMeta, err error) {
 	if exists := n.LevelConfigService.Exists(model.Cluster, n.IdService.ClusterId(clusterName)); !exists {
 		return resp, echo.NewHTTPError(http.StatusNotFound, fmt.Sprintf("%s is not n valid cluster", clusterName))
 	}
@@ -35,14 +55,14 @@ func (n *namespaceLevelConfigServiceImpl) GetAll(clusterName string) (resp respo
 	cluster, _ := n.LevelConfigService.Query(model.Cluster, n.IdService.ClusterId(clusterName), "")
 	namespaces := n.LevelConfigService.GetAll(model.Namespace)
 
-	resp.Data.Global = n.MappingService.ToLevelConfigMetaData(&global)
-	resp.Data.Cluster = n.MappingService.ToLevelConfigMetaData(&cluster)
+	resp.Global = n.MappingService.ToLevelConfigMeta(&global)
+	resp.Cluster = n.MappingService.ToLevelConfigMeta(&cluster)
 
-	ns := make([]response.LevelConfigMetaData, len(namespaces))
+	ns := make([]response.LevelConfigMeta, len(namespaces))
 	for i := range namespaces {
-		ns[i] = n.MappingService.ToLevelConfigMetaData(&namespaces[i])
+		ns[i] = n.MappingService.ToLevelConfigMeta(&namespaces[i])
 	}
-	resp.Data.Namespaces = ns
+	resp.Namespaces = ns
 
 	return resp, nil
 }

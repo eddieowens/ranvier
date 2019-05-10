@@ -13,7 +13,7 @@ type GlobalLevelConfigService interface {
 	Create(data []byte) (model.LevelConfig, error)
 	Rollback(version int) (model.LevelConfig, error)
 	Update(data []byte) (config model.LevelConfig, err error)
-	GetAll() (resp response.GlobalLevelConfigMeta, err error)
+	GetAll() (resp response.LevelConfigMeta, err error)
 }
 
 type globalLevelConfigServiceImpl struct {
@@ -21,12 +21,11 @@ type globalLevelConfigServiceImpl struct {
 	MappingService     MappingService     `inject:"MappingService"`
 }
 
-func (g *globalLevelConfigServiceImpl) GetAll() (resp response.GlobalLevelConfigMeta, err error) {
+func (g *globalLevelConfigServiceImpl) GetAll() (resp response.LevelConfigMeta, err error) {
 	globalConfig := g.LevelConfigService.GetAll(model.Global)
 	if len(globalConfig) > 0 {
-		meta := g.MappingService.ToLevelConfigMetaData(&globalConfig[0])
-		resp.Data = meta
-		return resp, nil
+		meta := g.MappingService.ToLevelConfigMeta(&globalConfig[0])
+		return meta, nil
 	}
 	return resp, nil
 }

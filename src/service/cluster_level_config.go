@@ -14,7 +14,8 @@ type ClusterLevelConfigService interface {
 	Create(cluster string, data []byte) (model.LevelConfig, error)
 	Update(cluster string, data []byte) (config model.LevelConfig, err error)
 	Rollback(cluster string, version int) (model.LevelConfig, error)
-	GetAll() (resp response.ClusterLevelConfigMeta, err error)
+	GetAll() (resp response.ClustersLevelConfigMeta, err error)
+	Get(name string) (resp response.ClusterLevelConfigMeta, err error)
 }
 
 type clusterLevelConfigServiceImpl struct {
@@ -23,17 +24,30 @@ type clusterLevelConfigServiceImpl struct {
 	MappingService     MappingService     `inject:"MappingService"`
 }
 
-func (c *clusterLevelConfigServiceImpl) GetAll() (resp response.ClusterLevelConfigMeta, err error) {
+func (c *clusterLevelConfigServiceImpl) Get(name string) (resp response.ClusterLevelConfigMeta, err error) {
+	global, _ := c.LevelConfigService.Query(model.Global, state.GlobalId, "")
+	cluster, err := c.LevelConfigService.Query(model.Cluster, c.IdService.ClusterId(name), "")
+	if err != nil {
+		return resp, err
+	}
+
+	resp.Global = c.MappingService.ToLevelConfigMeta(&global)
+	resp.Cluster = c.MappingService.ToLevelConfigMeta(&cluster)
+
+	return resp, nil
+}
+
+func (c *clusterLevelConfigServiceImpl) GetAll() (resp response.ClustersLevelConfigMeta, err error) {
 	global, _ := c.LevelConfigService.Query(model.Global, state.GlobalId, "")
 	clusters := c.LevelConfigService.GetAll(model.Cluster)
 
-	resp.Data.Global = c.MappingService.ToLevelConfigMetaData(&global)
+	resp.Global = c.MappingService.ToLevelConfigMeta(&global)
 
-	clstrs := make([]response.LevelConfigMetaData, len(clusters))
+	clstrs := make([]response.LevelConfigMeta, len(clusters))
 	for i := range clusters {
-		clstrs[i] = c.MappingService.ToLevelConfigMetaData(&clusters[i])
+		clstrs[i] = c.MappingService.ToLevelConfigMeta(&clusters[i])
 	}
-	resp.Data.Clusters = clstrs
+	resp.Clusters = clstrs
 
 	return resp, nil
 }

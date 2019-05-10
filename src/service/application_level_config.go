@@ -17,7 +17,8 @@ type ApplicationLevelConfigService interface {
 	Create(cluster string, namespace string, application string, data []byte) (model.LevelConfig, error)
 	Rollback(cluster string, namespace string, application string, version int) (config model.LevelConfig, err error)
 	Update(cluster, namespace, application string, data []byte) (config model.LevelConfig, err error)
-	GetAll(clusterName string, namespaceName string) (resp response.ApplicationLevelConfigMeta, err error)
+	GetAll(clusterName string, namespaceName string) (resp response.ApplicationsLevelConfigMeta, err error)
+	Get(clusterName string, namespaceName string, appName string) (resp response.ApplicationLevelConfigMeta, err error)
 }
 
 type applicationLevelConfigServiceImpl struct {
@@ -27,7 +28,28 @@ type applicationLevelConfigServiceImpl struct {
 	LevelService       state.LevelService `inject:"LevelService"`
 }
 
-func (a *applicationLevelConfigServiceImpl) GetAll(clusterName string, namespaceName string) (resp response.ApplicationLevelConfigMeta, err error) {
+func (a *applicationLevelConfigServiceImpl) Get(clusterName string, namespaceName string, appName string) (resp response.ApplicationLevelConfigMeta, err error) {
+	if err := a.exists(clusterName, namespaceName); err != nil {
+		return resp, err
+	}
+
+	global, _ := a.LevelConfigService.Query(model.Global, state.GlobalId, "")
+	cluster, _ := a.LevelConfigService.Query(model.Cluster, a.IdService.ClusterId(clusterName), "")
+	namespace, _ := a.LevelConfigService.Query(model.Namespace, a.IdService.NamespaceId(namespaceName, clusterName), "")
+	application, err := a.LevelConfigService.Query(model.Application, a.IdService.ApplicationId(appName, namespaceName, clusterName), "")
+	if err != nil {
+		return resp, err
+	}
+
+	resp.Global = a.MappingService.ToLevelConfigMeta(&global)
+	resp.Cluster = a.MappingService.ToLevelConfigMeta(&cluster)
+	resp.Namespace = a.MappingService.ToLevelConfigMeta(&namespace)
+	resp.Application = a.MappingService.ToLevelConfigMeta(&application)
+
+	return resp, nil
+}
+
+func (a *applicationLevelConfigServiceImpl) GetAll(clusterName string, namespaceName string) (resp response.ApplicationsLevelConfigMeta, err error) {
 	if err := a.exists(clusterName, namespaceName); err != nil {
 		return resp, err
 	}
@@ -37,15 +59,15 @@ func (a *applicationLevelConfigServiceImpl) GetAll(clusterName string, namespace
 	namespace, _ := a.LevelConfigService.Query(model.Namespace, a.IdService.NamespaceId(namespaceName, clusterName), "")
 	applications := a.LevelConfigService.GetAll(model.Application)
 
-	resp.Data.Global = a.MappingService.ToLevelConfigMetaData(&global)
-	resp.Data.Cluster = a.MappingService.ToLevelConfigMetaData(&cluster)
-	resp.Data.Namespace = a.MappingService.ToLevelConfigMetaData(&namespace)
+	resp.Global = a.MappingService.ToLevelConfigMeta(&global)
+	resp.Cluster = a.MappingService.ToLevelConfigMeta(&cluster)
+	resp.Namespace = a.MappingService.ToLevelConfigMeta(&namespace)
 
-	apps := make([]response.LevelConfigMetaData, len(applications))
+	apps := make([]response.LevelConfigMeta, len(applications))
 	for i := range applications {
-		apps[i] = a.MappingService.ToLevelConfigMetaData(&applications[i])
+		apps[i] = a.MappingService.ToLevelConfigMeta(&applications[i])
 	}
-	resp.Data.Applications = apps
+	resp.Applications = apps
 
 	return resp, nil
 }

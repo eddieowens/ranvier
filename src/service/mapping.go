@@ -8,14 +8,14 @@ import (
 const MappingServiceKey = "MappingService"
 
 type MappingService interface {
-	ToLevelConfigMetaData(config *model.LevelConfig) response.LevelConfigMetaData
+	ToLevelConfigMeta(config *model.LevelConfig) response.LevelConfigMeta
 }
 
 type mappingServiceImpl struct {
 }
 
-func (m *mappingServiceImpl) ToLevelConfigMetaData(config *model.LevelConfig) response.LevelConfigMetaData {
-	return response.LevelConfigMetaData{
+func (m *mappingServiceImpl) ToLevelConfigMeta(config *model.LevelConfig) response.LevelConfigMeta {
+	return response.LevelConfigMeta{
 		Name:    config.Name,
 		Version: config.Version,
 	}
