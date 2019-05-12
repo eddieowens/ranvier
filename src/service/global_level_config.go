@@ -14,11 +14,16 @@ type GlobalLevelConfigService interface {
 	Rollback(version int) (model.LevelConfig, error)
 	Update(data []byte) (config model.LevelConfig, err error)
 	GetAll() (resp response.LevelConfigMeta, err error)
+	Delete() (resp model.LevelConfig, err error)
 }
 
 type globalLevelConfigServiceImpl struct {
 	LevelConfigService LevelConfigService `inject:"LevelConfigService"`
 	MappingService     MappingService     `inject:"MappingService"`
+}
+
+func (g *globalLevelConfigServiceImpl) Delete() (resp model.LevelConfig, err error) {
+	return g.LevelConfigService.Delete(model.Global, state.GlobalId)
 }
 
 func (g *globalLevelConfigServiceImpl) GetAll() (resp response.LevelConfigMeta, err error) {

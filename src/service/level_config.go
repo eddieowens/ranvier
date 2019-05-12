@@ -20,6 +20,7 @@ type LevelConfigService interface {
 	Rollback(level model.Level, id model.Id, version int) (config model.LevelConfig, err error)
 	Exists(level model.Level, id model.Id) bool
 	GetAll(level model.Level) []model.LevelConfig
+	Delete(level model.Level, id model.Id) (model.LevelConfig, error)
 }
 
 type levelConfigServiceImpl struct {
@@ -30,6 +31,46 @@ type levelConfigServiceImpl struct {
 	LevelConfigQueryService state.LevelConfigQueryService `inject:"LevelConfigQueryService"`
 	MergeService            MergeService                  `inject:"MergeService"`
 	Json                    jsoniter.API                  `inject:"Json"`
+}
+
+func (l *levelConfigServiceImpl) Delete(level model.Level, id model.Id) (model.LevelConfig, error) {
+	resp, exists := l.State.Get(level, id)
+	og := l.IdService.IdNames(id)
+	name := l.IdService.Name(id)
+	if !exists {
+		levelStr := l.LevelService.ToString(level)
+		return resp, echo.NewHTTPError(http.StatusNotFound, fmt.Sprintf("no %s found named %s", levelStr, name))
+	}
+	if level == model.Cluster || level == model.Namespace {
+		for i := level; i <= model.Application; i++ {
+			err := l.State.WithLock(i, func(configs map[model.Id]model.LevelConfig) error {
+				for k, v := range configs {
+					idNames := l.IdService.IdNames(k)
+					shouldDelete := false
+					switch i {
+					case model.Namespace:
+						shouldDelete = idNames.Namespace != "" && idNames.Namespace == og.Namespace
+					case model.Cluster:
+						shouldDelete = idNames.Cluster != "" && idNames.Cluster == og.Cluster
+
+					}
+					shouldDelete = shouldDelete && !l.IdService.IsVersionedId(k)
+					if shouldDelete {
+						err := l.FileService.Delete(v)
+						if err != nil {
+							return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
+						}
+					}
+				}
+				return nil
+			})
+			if err != nil {
+				return resp, err
+			}
+		}
+	}
+	return resp, nil
+
 }
 
 func (l *levelConfigServiceImpl) GetAll(level model.Level) []model.LevelConfig {
@@ -68,7 +109,7 @@ func (l *levelConfigServiceImpl) MergedQuery(level model.Level, id model.Id, que
 }
 
 func (l *levelConfigServiceImpl) Update(level model.Level, id model.Id, data []byte) (config model.LevelConfig, err error) {
-	err = l.State.WithLock(level, id, func(levelConfig model.LevelConfig, exists bool, _ state.Saver) error {
+	err = l.State.WithLockWindow(level, id, func(levelConfig model.LevelConfig, exists bool, _ state.Saver) error {
 		if exists {
 			newConfig := collections.NewJsonMap(data)
 			mergedData := l.MergeService.MergeJsonMaps(&levelConfig.Config, &newConfig)
@@ -95,7 +136,7 @@ func (l *levelConfigServiceImpl) Rollback(level model.Level, id model.Id, versio
 	if !exists {
 		return config, echo.NewHTTPError(http.StatusNotFound, fmt.Sprintf("%s version %d does not exist", l.IdService.Name(id), version))
 	}
-	err = l.State.WithLock(level, id, func(levelConfig model.LevelConfig, _ bool, _ state.Saver) error {
+	err = l.State.WithLockWindow(level, id, func(levelConfig model.LevelConfig, _ bool, _ state.Saver) error {
 		if levelConfig.Version == version {
 			config = levelConfig
 			return nil
@@ -114,7 +155,7 @@ func (l *levelConfigServiceImpl) Create(level model.Level, id model.Id, data []b
 	_, exists := l.State.Get(level, id)
 
 	if !exists {
-		err := l.State.WithLock(level, id, func(levelConfig model.LevelConfig, exists bool, _ state.Saver) error {
+		err := l.State.WithLockWindow(level, id, func(levelConfig model.LevelConfig, exists bool, _ state.Saver) error {
 			if exists {
 				return echo.NewHTTPError(http.StatusConflict, fmt.Sprintf("%s already exists", id))
 			}

@@ -13,6 +13,7 @@ const IdSeparator = "~"
 type IdService interface {
 	Name(id model.Id) string
 	Names(id model.Id) []string
+	IdNames(id model.Id) model.IdNames
 	Id(names ...string) model.Id
 	GlobalId() model.Id
 	ClusterId(name string) model.Id
@@ -23,6 +24,23 @@ type IdService interface {
 }
 
 type idServiceImpl struct {
+}
+
+func (i *idServiceImpl) IdNames(id model.Id) model.IdNames {
+	names := i.Names(id)
+	idNames := model.IdNames{}
+	switch len(names) {
+	case 1:
+		idNames.Cluster = names[0]
+	case 2:
+		idNames.Cluster = names[0]
+		idNames.Namespace = names[1]
+	case 3:
+		idNames.Cluster = names[0]
+		idNames.Namespace = names[1]
+		idNames.Application = names[2]
+	}
+	return idNames
 }
 
 func (i *idServiceImpl) IsVersionedId(id model.Id) bool {

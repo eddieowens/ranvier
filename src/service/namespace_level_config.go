@@ -19,6 +19,7 @@ type NamespaceLevelConfigService interface {
 	Update(cluster, namespace string, data []byte) (config model.LevelConfig, err error)
 	GetAll(clusterName string) (resp response.NamespacesLevelConfigMeta, err error)
 	Get(clusterName string, namespaceName string) (resp response.NamespaceLevelConfigMeta, err error)
+	Delete(clusterName string, namespaceName string) (resp model.LevelConfig, err error)
 }
 
 type namespaceLevelConfigServiceImpl struct {
@@ -27,9 +28,17 @@ type namespaceLevelConfigServiceImpl struct {
 	MappingService     MappingService     `inject:"MappingService"`
 }
 
+func (n *namespaceLevelConfigServiceImpl) Delete(clusterName string, namespaceName string) (resp model.LevelConfig, err error) {
+	if exists := n.LevelConfigService.Exists(model.Cluster, n.IdService.ClusterId(clusterName)); !exists {
+		return resp, echo.NewHTTPError(http.StatusNotFound, fmt.Sprintf("%s is not a valid cluster", clusterName))
+	}
+
+	return n.LevelConfigService.Delete(model.Namespace, n.IdService.NamespaceId(namespaceName, clusterName))
+}
+
 func (n *namespaceLevelConfigServiceImpl) Get(clusterName string, namespaceName string) (resp response.NamespaceLevelConfigMeta, err error) {
 	if exists := n.LevelConfigService.Exists(model.Cluster, n.IdService.ClusterId(clusterName)); !exists {
-		return resp, echo.NewHTTPError(http.StatusNotFound, fmt.Sprintf("%s is not n valid cluster", clusterName))
+		return resp, echo.NewHTTPError(http.StatusNotFound, fmt.Sprintf("%s is not a valid cluster", clusterName))
 	}
 
 	global, _ := n.LevelConfigService.Query(model.Global, state.GlobalId, "")
@@ -48,7 +57,7 @@ func (n *namespaceLevelConfigServiceImpl) Get(clusterName string, namespaceName 
 
 func (n *namespaceLevelConfigServiceImpl) GetAll(clusterName string) (resp response.NamespacesLevelConfigMeta, err error) {
 	if exists := n.LevelConfigService.Exists(model.Cluster, n.IdService.ClusterId(clusterName)); !exists {
-		return resp, echo.NewHTTPError(http.StatusNotFound, fmt.Sprintf("%s is not n valid cluster", clusterName))
+		return resp, echo.NewHTTPError(http.StatusNotFound, fmt.Sprintf("%s is not a valid cluster", clusterName))
 	}
 
 	global, _ := n.LevelConfigService.Query(model.Global, state.GlobalId, "")
@@ -69,7 +78,7 @@ func (n *namespaceLevelConfigServiceImpl) GetAll(clusterName string) (resp respo
 
 func (n *namespaceLevelConfigServiceImpl) Update(cluster, namespace string, data []byte) (config model.LevelConfig, err error) {
 	if exists := n.LevelConfigService.Exists(model.Cluster, n.IdService.ClusterId(cluster)); !exists {
-		return config, echo.NewHTTPError(http.StatusNotFound, fmt.Sprintf("%s is not n valid cluster", cluster))
+		return config, echo.NewHTTPError(http.StatusNotFound, fmt.Sprintf("%s is not a valid cluster", cluster))
 	}
 
 	id := n.IdService.NamespaceId(namespace, cluster)
@@ -79,7 +88,7 @@ func (n *namespaceLevelConfigServiceImpl) Update(cluster, namespace string, data
 
 func (n *namespaceLevelConfigServiceImpl) Query(cluster string, namespace string, query string) (config model.LevelConfig, err error) {
 	if exists := n.LevelConfigService.Exists(model.Cluster, n.IdService.ClusterId(cluster)); !exists {
-		return config, echo.NewHTTPError(http.StatusNotFound, fmt.Sprintf("%s is not n valid cluster", cluster))
+		return config, echo.NewHTTPError(http.StatusNotFound, fmt.Sprintf("%s is not a valid cluster", cluster))
 	}
 
 	id := n.IdService.NamespaceId(namespace, cluster)
@@ -89,7 +98,7 @@ func (n *namespaceLevelConfigServiceImpl) Query(cluster string, namespace string
 
 func (n *namespaceLevelConfigServiceImpl) MergedQuery(cluster, namespace, query string) (config model.LevelConfig, err error) {
 	if exists := n.LevelConfigService.Exists(model.Cluster, n.IdService.ClusterId(cluster)); !exists {
-		return config, echo.NewHTTPError(http.StatusNotFound, fmt.Sprintf("%s is not n valid cluster", cluster))
+		return config, echo.NewHTTPError(http.StatusNotFound, fmt.Sprintf("%s is not a valid cluster", cluster))
 	}
 
 	id := n.IdService.NamespaceId(namespace, cluster)
@@ -99,7 +108,7 @@ func (n *namespaceLevelConfigServiceImpl) MergedQuery(cluster, namespace, query 
 
 func (n *namespaceLevelConfigServiceImpl) Create(cluster string, namespace string, data []byte) (config model.LevelConfig, err error) {
 	if exists := n.LevelConfigService.Exists(model.Cluster, n.IdService.ClusterId(cluster)); !exists {
-		return config, echo.NewHTTPError(http.StatusNotFound, fmt.Sprintf("%s is not n valid cluster", cluster))
+		return config, echo.NewHTTPError(http.StatusNotFound, fmt.Sprintf("%s is not a valid cluster", cluster))
 	}
 
 	id := n.IdService.NamespaceId(namespace, cluster)
@@ -109,7 +118,7 @@ func (n *namespaceLevelConfigServiceImpl) Create(cluster string, namespace strin
 
 func (n *namespaceLevelConfigServiceImpl) Rollback(cluster string, namespace string, version int) (config model.LevelConfig, err error) {
 	if exists := n.LevelConfigService.Exists(model.Cluster, n.IdService.ClusterId(cluster)); !exists {
-		return config, echo.NewHTTPError(http.StatusNotFound, fmt.Sprintf("%s is not n valid cluster", cluster))
+		return config, echo.NewHTTPError(http.StatusNotFound, fmt.Sprintf("%s is not a valid cluster", cluster))
 	}
 
 	id := n.IdService.NamespaceId(namespace, cluster)

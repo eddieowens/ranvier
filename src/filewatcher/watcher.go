@@ -26,11 +26,12 @@ type fileWatcherImpl struct {
 	LevelConfigService service.LevelConfigService `inject:"LevelConfigService"`
 	FileService        service.FileService        `inject:"FileService"`
 	Config             configuration.Config       `inject:"Config"`
+	IdService          state.IdService            `inject:"IdService"`
 	Watcher            *watcher.Watcher
 }
 
 func (f *fileWatcherImpl) Start() error {
-	f.Watcher.FilterOps(watcher.Create, watcher.Write)
+	f.Watcher.FilterOps(watcher.Create, watcher.Write, watcher.Remove)
 
 	f.Watcher.AddFilterHook(watcher.RegexFilterHook(regexp.MustCompile(".+.json"), false))
 
@@ -53,7 +54,11 @@ func (f *fileWatcherImpl) Start() error {
 			select {
 			case event := <-f.Watcher.Event:
 				if !event.IsDir() {
-					f.updateStateFromFile(event.Name())
+					if event.Op == watcher.Remove && !f.FileService.IsMetaFile(event.Name()) {
+						f.removeState(event.Name())
+					} else {
+						f.updateStateFromFile(event.Name())
+					}
 				}
 
 			case err := <-f.Watcher.Error:
@@ -75,8 +80,13 @@ func (f *fileWatcherImpl) Start() error {
 }
 
 func (f *fileWatcherImpl) updateStateFromFile(filename string) {
-	levelConfig := f.FileService.FromFile(filename)
+	levelConfig := f.FileService.FromConfigFile(filename)
 	f.State.Set(levelConfig)
+}
+
+func (f *fileWatcherImpl) removeState(filename string) {
+	levelConfig := f.FileService.FromFileName(filename)
+	f.State.Delete(levelConfig.Level, levelConfig.Id)
 }
 
 func (f *fileWatcherImpl) isMetaFile(filename string) bool {

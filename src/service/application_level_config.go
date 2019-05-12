@@ -19,6 +19,7 @@ type ApplicationLevelConfigService interface {
 	Update(cluster, namespace, application string, data []byte) (config model.LevelConfig, err error)
 	GetAll(clusterName string, namespaceName string) (resp response.ApplicationsLevelConfigMeta, err error)
 	Get(clusterName string, namespaceName string, appName string) (resp response.ApplicationLevelConfigMeta, err error)
+	Delete(clusterName string, namespaceName string, appName string) (resp model.LevelConfig, err error)
 }
 
 type applicationLevelConfigServiceImpl struct {
@@ -26,6 +27,14 @@ type applicationLevelConfigServiceImpl struct {
 	IdService          state.IdService    `inject:"IdService"`
 	MappingService     MappingService     `inject:"MappingService"`
 	LevelService       state.LevelService `inject:"LevelService"`
+}
+
+func (a *applicationLevelConfigServiceImpl) Delete(clusterName string, namespaceName string, appName string) (resp model.LevelConfig, err error) {
+	if err := a.exists(clusterName, namespaceName); err != nil {
+		return resp, err
+	}
+
+	return a.LevelConfigService.Delete(model.Application, a.IdService.ApplicationId(appName, namespaceName, clusterName))
 }
 
 func (a *applicationLevelConfigServiceImpl) Get(clusterName string, namespaceName string, appName string) (resp response.ApplicationLevelConfigMeta, err error) {

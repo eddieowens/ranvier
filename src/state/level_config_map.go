@@ -7,8 +7,9 @@ import (
 	"sync"
 )
 
-type WriteRunner func(config model.LevelConfig, exists bool, saver Saver) error
-type ReadRunner func(config model.LevelConfig, exists bool) error
+type WriteRunnerWindow func(config model.LevelConfig, exists bool, saver Saver) error
+type WriteRunner func(map[model.Id]model.LevelConfig) error
+type ReadRunnerWindow func(config model.LevelConfig, exists bool) error
 type Saver func(config model.LevelConfig)
 type GetAllFilter func(id model.Id, config model.LevelConfig) bool
 
@@ -16,8 +17,10 @@ type LevelConfigMap interface {
 	Set(levelConfig model.LevelConfig)
 	Get(id model.Id) (model.LevelConfig, bool)
 	GetAll(filter GetAllFilter) []model.LevelConfig
-	WithLock(id model.Id, runner WriteRunner) error
-	WithReadLock(id model.Id, runner ReadRunner) error
+	Delete(id model.Id)
+	WithLock(runner WriteRunner) error
+	WithLockWindow(id model.Id, runner WriteRunnerWindow) error
+	WithReadLockWindow(id model.Id, runner ReadRunnerWindow) error
 }
 
 func levelConfigMapFactory(_ axon.Args) axon.Instance {
@@ -31,6 +34,18 @@ type levelConfigMapImpl struct {
 	m    map[model.Id]model.LevelConfig
 	lock sync.RWMutex
 	Json jsoniter.API `inject:"Json"`
+}
+
+func (s *levelConfigMapImpl) WithLock(runner WriteRunner) error {
+	s.lock.Lock()
+	defer s.lock.Unlock()
+	return runner(s.m)
+}
+
+func (s *levelConfigMapImpl) Delete(id model.Id) {
+	s.lock.Lock()
+	defer s.lock.Unlock()
+	delete(s.m, id)
 }
 
 func (s *levelConfigMapImpl) GetAll(filter GetAllFilter) []model.LevelConfig {
@@ -47,7 +62,7 @@ func (s *levelConfigMapImpl) GetAll(filter GetAllFilter) []model.LevelConfig {
 	return sl
 }
 
-func (s *levelConfigMapImpl) WithLock(id model.Id, runner WriteRunner) error {
+func (s *levelConfigMapImpl) WithLockWindow(id model.Id, runner WriteRunnerWindow) error {
 	s.lock.Lock()
 	defer s.lock.Unlock()
 	val, exists := s.m[id]
@@ -56,7 +71,7 @@ func (s *levelConfigMapImpl) WithLock(id model.Id, runner WriteRunner) error {
 	})
 }
 
-func (s *levelConfigMapImpl) WithReadLock(id model.Id, runner ReadRunner) error {
+func (s *levelConfigMapImpl) WithReadLockWindow(id model.Id, runner ReadRunnerWindow) error {
 	s.lock.Lock()
 	defer s.lock.Unlock()
 	val, exists := s.m[id]

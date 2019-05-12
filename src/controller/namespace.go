@@ -23,6 +23,22 @@ type namespaceControllerImpl struct {
 	LevelConfigService service.NamespaceLevelConfigService `inject:"NamespaceLevelConfigService"`
 }
 
+func (n *namespaceControllerImpl) Delete(c echo.Context) error {
+	namespace := c.Param("namespace")
+	cluster := c.Param("cluster")
+
+	if namespace == "" || cluster == "" {
+		return c.NoContent(http.StatusBadRequest)
+	}
+
+	data, err := n.LevelConfigService.Delete(cluster, namespace)
+	if err != nil {
+		return err
+	}
+
+	return c.JSON(http.StatusOK, data)
+}
+
 func (n *namespaceControllerImpl) GetAll(c echo.Context) error {
 	cluster := c.Param("cluster")
 
@@ -170,6 +186,7 @@ func (n *namespaceControllerImpl) GetRoutes() []model.Route {
 		model.NewRoute(http.MethodPut, "/config/:cluster/:namespace/rollback/:version", true, n.Rollback),
 		model.NewRoute(http.MethodPut, "/config/:cluster/:namespace", true, n.Update),
 		model.NewRoute(http.MethodGet, "/config/:cluster/:namespace", true, n.Query),
+		model.NewRoute(http.MethodDelete, "/config/:cluster/:namespace", true, n.Delete),
 		model.NewRoute(http.MethodGet, "/config/:cluster/namespaces", true, n.GetAll),
 		model.NewRoute(http.MethodGet, "/config/:cluster/namespaces/:name", true, n.Get),
 		model.NewRoute(http.MethodGet, "/config/:cluster/:namespace", false, n.MergedQuery),

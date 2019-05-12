@@ -16,12 +16,17 @@ type ClusterLevelConfigService interface {
 	Rollback(cluster string, version int) (model.LevelConfig, error)
 	GetAll() (resp response.ClustersLevelConfigMeta, err error)
 	Get(name string) (resp response.ClusterLevelConfigMeta, err error)
+	Delete(clusterName string) (resp model.LevelConfig, err error)
 }
 
 type clusterLevelConfigServiceImpl struct {
 	LevelConfigService LevelConfigService `inject:"LevelConfigService"`
 	IdService          state.IdService    `inject:"IdService"`
 	MappingService     MappingService     `inject:"MappingService"`
+}
+
+func (c *clusterLevelConfigServiceImpl) Delete(clusterName string) (resp model.LevelConfig, err error) {
+	return c.LevelConfigService.Delete(model.Cluster, c.IdService.ClusterId(clusterName))
 }
 
 func (c *clusterLevelConfigServiceImpl) Get(name string) (resp response.ClusterLevelConfigMeta, err error) {

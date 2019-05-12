@@ -20,7 +20,9 @@ type LevelConfigState interface {
 	Set(levelConfig model.LevelConfig)
 	Get(level model.Level, id model.Id) (levelConfig model.LevelConfig, exists bool)
 	GetAll(level model.Level) []model.LevelConfig
-	WithLock(level model.Level, id model.Id, runner WriteRunner) error
+	Delete(level model.Level, id model.Id) (model.LevelConfig, bool)
+	WithLockWindow(level model.Level, id model.Id, runner WriteRunnerWindow) error
+	WithLock(level model.Level, runner WriteRunner) error
 }
 
 type levelConfigStateImpl struct {
@@ -32,6 +34,36 @@ type levelConfigStateImpl struct {
 	LevelConfigQueryService LevelConfigQueryService `inject:"LevelConfigQueryService"`
 	VersionMap              map[model.Id][]int
 	VersionMapLock          sync.RWMutex
+}
+
+func (l *levelConfigStateImpl) WithLock(level model.Level, runner WriteRunner) error {
+	switch level {
+	case model.Global:
+		return l.GlobalState.WithLock(runner)
+	case model.Cluster:
+		return l.ClusterState.WithLock(runner)
+	case model.Namespace:
+		return l.NamespaceState.WithLock(runner)
+	case model.Application:
+		return l.ApplicationState.WithLock(runner)
+	default:
+		return nil
+	}
+}
+
+func (l *levelConfigStateImpl) Delete(level model.Level, id model.Id) (model.LevelConfig, bool) {
+	switch level {
+	case model.Global:
+		return l.delete(id, l.GlobalState)
+	case model.Cluster:
+		return l.delete(id, l.ClusterState)
+	case model.Namespace:
+		return l.delete(id, l.NamespaceState)
+	case model.Application:
+		return l.delete(id, l.ApplicationState)
+	default:
+		return model.LevelConfig{}, false
+	}
 }
 
 func (l *levelConfigStateImpl) GetAll(level model.Level) []model.LevelConfig {
@@ -49,16 +81,16 @@ func (l *levelConfigStateImpl) GetAll(level model.Level) []model.LevelConfig {
 	}
 }
 
-func (l *levelConfigStateImpl) WithLock(level model.Level, id model.Id, runner WriteRunner) error {
+func (l *levelConfigStateImpl) WithLockWindow(level model.Level, id model.Id, runner WriteRunnerWindow) error {
 	switch level {
 	case model.Global:
-		return l.GlobalState.WithLock(id, runner)
+		return l.GlobalState.WithLockWindow(id, runner)
 	case model.Cluster:
-		return l.ClusterState.WithLock(id, runner)
+		return l.ClusterState.WithLockWindow(id, runner)
 	case model.Namespace:
-		return l.NamespaceState.WithLock(id, runner)
+		return l.NamespaceState.WithLockWindow(id, runner)
 	case model.Application:
-		return l.ApplicationState.WithLock(id, runner)
+		return l.ApplicationState.WithLockWindow(id, runner)
 	default:
 		return nil
 	}
@@ -109,7 +141,7 @@ func (l *levelConfigStateImpl) Query(level model.Level, id model.Id, query strin
 }
 
 func (l *levelConfigStateImpl) set(levelConfig model.LevelConfig, configMap LevelConfigMap) {
-	_ = configMap.WithLock(levelConfig.Id, func(_ model.LevelConfig, _ bool, saver Saver) error {
+	_ = configMap.WithLockWindow(levelConfig.Id, func(_ model.LevelConfig, _ bool, saver Saver) error {
 		versionedId := l.IdService.VersionedId(levelConfig.Id, levelConfig.Version)
 
 		versions := l.VersionMap[levelConfig.Id]
@@ -135,11 +167,27 @@ func (l *levelConfigStateImpl) getAllFilter(id model.Id, _ model.LevelConfig) bo
 }
 
 func (l *levelConfigStateImpl) query(state LevelConfigMap, id model.Id, query string) (config model.LevelConfig, exists bool) {
-	_ = state.WithReadLock(id, func(levelConfig model.LevelConfig, _ bool) error {
+	_ = state.WithReadLockWindow(id, func(levelConfig model.LevelConfig, _ bool) error {
 		config, exists = l.LevelConfigQueryService.Query(levelConfig, query)
 		return nil
 	})
 	return config, exists
+}
+
+func (l *levelConfigStateImpl) delete(id model.Id, state LevelConfigMap) (config model.LevelConfig, exists bool) {
+	_ = state.WithLock(func(configs map[model.Id]model.LevelConfig) error {
+		config, exists = configs[id]
+		if exists {
+			delete(configs, id)
+			versions := l.VersionMap[id]
+			for _, v := range versions {
+				delete(configs, l.IdService.VersionedId(id, v))
+			}
+			delete(l.VersionMap, id)
+		}
+		return nil
+	})
+	return
 }
 
 func levelConfigStateFactory(_ axon.Args) axon.Instance {
