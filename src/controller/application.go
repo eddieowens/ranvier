@@ -140,6 +140,14 @@ func (a *applicationControllerImpl) Rollback(c echo.Context) error {
 	return c.JSON(http.StatusOK, config)
 }
 
+// @Summary Query on a user-defined configuration.
+// @Description Retrieves the entirety or a query result of user-defined configuration via a key param. The key param. They key param is a valid gjson (https://github.com/tidwall/gjson#path-syntax) query. For example, to retrieve a nested key, the key param would be outer_key.inner_key.
+// @Produce json
+// @Router /config/{cluster}/{namespace}/{application} [get]
+// @Param key path string false "a gjson valid query"
+// @Success 200 {object} model.LevelConfig
+// @Failure 404 {object} model.HTTPError
+// @Failure 500 {object} model.HTTPError
 func (a *applicationControllerImpl) Query(c echo.Context) error {
 	key := c.QueryParam("key")
 	cluster := c.Param("cluster")

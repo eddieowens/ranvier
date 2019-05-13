@@ -3,9 +3,11 @@ package src
 import (
 	"github.com/labstack/echo"
 	"github.com/labstack/echo/middleware"
+	_ "github.com/two-rabbits/ranvier/src/docs"
 	"github.com/two-rabbits/ranvier/src/filewatcher"
 	"github.com/two-rabbits/ranvier/src/router"
 	"github.com/two-rabbits/ranvier/src/state"
+	"github.com/two-rabbits/ranvier/src/swagger"
 )
 
 const AppKey = "App"
@@ -24,6 +26,7 @@ func (a *appImpl) Run() {
 	e := echo.New()
 
 	e.Use(middleware.Logger(), middleware.Recover())
+	e.GET("/swagger/*", swagger.Handler())
 
 	a.Router.RegisterAll(e)
 

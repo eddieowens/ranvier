@@ -6,7 +6,7 @@ ADD . /build/
 
 WORKDIR /build
 
-RUN mkdir something
+RUN mkdir -p something
 
 RUN go get
 

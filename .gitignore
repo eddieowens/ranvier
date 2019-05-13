@@ -20,5 +20,8 @@
 *.iml
 out
 gen
+src/docs/docs.go
+src/docs/swagger.*
 
 something
+vendor
