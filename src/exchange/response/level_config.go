@@ -1,51 +1,80 @@
 package response
 
-type LevelConfigResponse struct {
-	Data LevelConfigData
+type LevelConfig struct {
+	Data *LevelConfigData `json:"data"`
 }
 
 type LevelConfigData struct {
-	Version string      `json:"version"`
+	Version int         `json:"version"`
+	Name    string      `json:"name"`
 	Config  interface{} `json:"config"`
 }
 
 type LevelConfigMeta struct {
+	Data *LevelConfigMetaData `json:"data"`
+}
+
+type LevelConfigMetaData struct {
 	Name    string `json:"name"`
 	Version int    `json:"version"`
 }
 
 type ApplicationsLevelConfigMeta struct {
-	Global       LevelConfigMeta   `json:"global"`
-	Cluster      LevelConfigMeta   `json:"cluster"`
-	Namespace    LevelConfigMeta   `json:"namespace"`
-	Applications []LevelConfigMeta `json:"applications"`
+	Data *ApplicationsLevelConfigMetaData `json:"data"`
+}
+
+type ApplicationsLevelConfigMetaData struct {
+	Global       *LevelConfigMetaData  `json:"global"`
+	Cluster      *LevelConfigMetaData  `json:"cluster"`
+	Namespace    *LevelConfigMetaData  `json:"namespace"`
+	Applications []LevelConfigMetaData `json:"applications"`
 }
 
 type ApplicationLevelConfigMeta struct {
-	Global      LevelConfigMeta `json:"global"`
-	Cluster     LevelConfigMeta `json:"cluster"`
-	Namespace   LevelConfigMeta `json:"namespace"`
-	Application LevelConfigMeta `json:"application"`
+	Data *ApplicationLevelConfigMetaData `json:"data"`
+}
+
+type ApplicationLevelConfigMetaData struct {
+	Global      *LevelConfigMetaData `json:"global"`
+	Cluster     *LevelConfigMetaData `json:"cluster"`
+	Namespace   *LevelConfigMetaData `json:"namespace"`
+	Application *LevelConfigMetaData `json:"application"`
 }
 
 type NamespacesLevelConfigMeta struct {
-	Global     LevelConfigMeta   `json:"global"`
-	Cluster    LevelConfigMeta   `json:"cluster"`
-	Namespaces []LevelConfigMeta `json:"namespaces"`
+	Data *NamespacesLevelConfigMetaData `json:"data"`
+}
+
+type NamespacesLevelConfigMetaData struct {
+	Global     *LevelConfigMetaData  `json:"global"`
+	Cluster    *LevelConfigMetaData  `json:"cluster"`
+	Namespaces []LevelConfigMetaData `json:"namespaces"`
 }
 
 type NamespaceLevelConfigMeta struct {
-	Global    LevelConfigMeta `json:"global"`
-	Cluster   LevelConfigMeta `json:"cluster"`
-	Namespace LevelConfigMeta `json:"namespace"`
+	Data *NamespaceLevelConfigMetaData `json:"data"`
+}
+
+type NamespaceLevelConfigMetaData struct {
+	Global    *LevelConfigMetaData `json:"global"`
+	Cluster   *LevelConfigMetaData `json:"cluster"`
+	Namespace *LevelConfigMetaData `json:"namespace"`
 }
 
 type ClustersLevelConfigMeta struct {
-	Global   LevelConfigMeta   `json:"global"`
-	Clusters []LevelConfigMeta `json:"clusters"`
+	Data *ClustersLevelConfigMetaData `json:"data"`
+}
+
+type ClustersLevelConfigMetaData struct {
+	Global   *LevelConfigMetaData  `json:"global"`
+	Clusters []LevelConfigMetaData `json:"clusters"`
 }
 
 type ClusterLevelConfigMeta struct {
-	Global  LevelConfigMeta `json:"global"`
-	Cluster LevelConfigMeta `json:"cluster"`
+	Data *ClusterLevelConfigMetaData `json:"data"`
+}
+
+type ClusterLevelConfigMetaData struct {
+	Global  *LevelConfigMetaData `json:"global"`
+	Cluster *LevelConfigMetaData `json:"cluster"`
 }

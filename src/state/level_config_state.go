@@ -167,8 +167,9 @@ func (l *levelConfigStateImpl) getAllFilter(id model.Id, _ model.LevelConfig) bo
 }
 
 func (l *levelConfigStateImpl) query(state LevelConfigMap, id model.Id, query string) (config model.LevelConfig, exists bool) {
-	_ = state.WithReadLockWindow(id, func(levelConfig model.LevelConfig, _ bool) error {
-		config, exists = l.LevelConfigQueryService.Query(levelConfig, query)
+	_ = state.WithReadLockWindow(id, func(levelConfig model.LevelConfig, ok bool) error {
+		config, _ = l.LevelConfigQueryService.Query(levelConfig, query)
+		exists = ok
 		return nil
 	})
 	return config, exists

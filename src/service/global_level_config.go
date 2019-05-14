@@ -9,12 +9,12 @@ import (
 const GlobalLevelConfigServiceKey = "GlobalLevelConfigService"
 
 type GlobalLevelConfigService interface {
-	Query(query string) (model.LevelConfig, error)
-	Create(data []byte) (model.LevelConfig, error)
-	Rollback(version int) (model.LevelConfig, error)
-	Update(data []byte) (config model.LevelConfig, err error)
+	Query(query string) (resp response.LevelConfig, err error)
+	Create(data []byte) (resp response.LevelConfig, err error)
+	Rollback(version int) (resp response.LevelConfig, err error)
+	Update(data []byte) (resp response.LevelConfig, err error)
 	GetAll() (resp response.LevelConfigMeta, err error)
-	Delete() (resp model.LevelConfig, err error)
+	Delete() (resp response.LevelConfig, err error)
 }
 
 type globalLevelConfigServiceImpl struct {
@@ -22,8 +22,13 @@ type globalLevelConfigServiceImpl struct {
 	MappingService     MappingService     `inject:"MappingService"`
 }
 
-func (g *globalLevelConfigServiceImpl) Delete() (resp model.LevelConfig, err error) {
-	return g.LevelConfigService.Delete(model.Global, state.GlobalId)
+func (g *globalLevelConfigServiceImpl) Delete() (resp response.LevelConfig, err error) {
+	config, err := g.LevelConfigService.Delete(model.Global, state.GlobalId)
+	if err != nil {
+		return resp, err
+	}
+
+	return g.MappingService.ToLevelConfig(config), nil
 }
 
 func (g *globalLevelConfigServiceImpl) GetAll() (resp response.LevelConfigMeta, err error) {
@@ -35,18 +40,38 @@ func (g *globalLevelConfigServiceImpl) GetAll() (resp response.LevelConfigMeta, 
 	return resp, nil
 }
 
-func (g *globalLevelConfigServiceImpl) Update(data []byte) (config model.LevelConfig, err error) {
-	return g.LevelConfigService.Update(model.Global, state.GlobalId, data)
+func (g *globalLevelConfigServiceImpl) Update(data []byte) (resp response.LevelConfig, err error) {
+	config, err := g.LevelConfigService.Update(model.Global, state.GlobalId, data)
+	if err != nil {
+		return resp, err
+	}
+
+	return g.MappingService.ToLevelConfig(config), nil
 }
 
-func (g *globalLevelConfigServiceImpl) Query(query string) (model.LevelConfig, error) {
-	return g.LevelConfigService.Query(model.Global, state.GlobalId, query)
+func (g *globalLevelConfigServiceImpl) Query(query string) (resp response.LevelConfig, err error) {
+	config, exists := g.LevelConfigService.Query(model.Global, state.GlobalId, query)
+	if !exists {
+		return resp, NewKeyNotFoundError(query)
+	}
+
+	return g.MappingService.ToLevelConfig(config), nil
 }
 
-func (g *globalLevelConfigServiceImpl) Create(data []byte) (model.LevelConfig, error) {
-	return g.LevelConfigService.Create(model.Global, state.GlobalId, data)
+func (g *globalLevelConfigServiceImpl) Create(data []byte) (resp response.LevelConfig, err error) {
+	config, err := g.LevelConfigService.Create(model.Global, state.GlobalId, data)
+	if err != nil {
+		return resp, err
+	}
+
+	return g.MappingService.ToLevelConfig(config), nil
 }
 
-func (g *globalLevelConfigServiceImpl) Rollback(version int) (model.LevelConfig, error) {
-	return g.LevelConfigService.Rollback(model.Global, state.GlobalId, version)
+func (g *globalLevelConfigServiceImpl) Rollback(version int) (resp response.LevelConfig, err error) {
+	config, err := g.LevelConfigService.Rollback(model.Global, state.GlobalId, version)
+	if err != nil {
+		return resp, err
+	}
+
+	return g.MappingService.ToLevelConfig(config), nil
 }
