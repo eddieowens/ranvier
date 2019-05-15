@@ -91,6 +91,18 @@ func (a *applicationControllerImpl) MergedQuery(c echo.Context) error {
 	return c.JSON(http.StatusOK, data)
 }
 
+// @Summary Update the user-defined configuration.
+// @Description Updates the user-defined configuration by merging the provided request body with the current configuration. Any key conflicts will be resolved with the provided request body taking precedence.
+// @Produce json
+// @Accept json
+// @Router /config/{cluster}/{namespace}/{application} [put]
+// @Param cluster path string true "The name of the cluster that the application resides in"
+// @Param namespace path string true "The name of the namespace that the application resides in"
+// @Param application path string true "The name of the application"
+// @Success 200 {object} response.LevelConfig
+// @Failure 404 {object} response.HTTPError
+// @Failure 500 {object} response.HTTPError
+// @Tags Admin
 func (a *applicationControllerImpl) Update(c echo.Context) error {
 	cluster := c.Param("cluster")
 	namespace := c.Param("namespace")
@@ -117,6 +129,18 @@ func (a *applicationControllerImpl) Update(c echo.Context) error {
 	return c.JSON(http.StatusOK, appConfig)
 }
 
+// @Summary Rollback user-defined configuration to a particular version.
+// @Description Accepts the integer version of a particular configuration and rolls back configuration to that state. A new version will be created after rolling back.
+// @Produce json
+// @Router /config/{cluster}/{namespace}/{application}/rollback/{version} [put]
+// @Param cluster path string true "The name of the cluster that the application resides in"
+// @Param namespace path string true "The name of the namespace that the application resides in"
+// @Param application path string true "The name of the application"
+// @Param version path int true "The version to rollback to"
+// @Success 200 {object} response.LevelConfig
+// @Failure 404 {object} response.HTTPError
+// @Failure 500 {object} response.HTTPError
+// @Tags Admin
 func (a *applicationControllerImpl) Rollback(c echo.Context) error {
 	version := c.Param("version")
 	cluster := c.Param("cluster")
@@ -141,13 +165,17 @@ func (a *applicationControllerImpl) Rollback(c echo.Context) error {
 }
 
 // @Summary Query on a user-defined configuration.
-// @Description Retrieves the entirety or a query result of user-defined configuration via a key param. The key param. They key param is a valid gjson (https://github.com/tidwall/gjson#path-syntax) query. For example, to retrieve a nested key, the key param would be outer_key.inner_key.
+// @Description Retrieves the entirety or a query result of user-defined configuration via a key param. The key param is a valid gjson (https://github.com/tidwall/gjson#path-syntax) query. For example, to retrieve a nested key, the key param would be outer_key.inner_key.
 // @Produce json
 // @Router /config/{cluster}/{namespace}/{application} [get]
-// @Param key path string false "a gjson valid query"
-// @Success 200 {object} model.LevelConfig
-// @Failure 404 {object} model.HTTPError
-// @Failure 500 {object} model.HTTPError
+// @Param cluster path string true "The name of the cluster that the application resides in"
+// @Param namespace path string true "The name of the namespace that the application resides in"
+// @Param application path string true "The name of the application"
+// @Param key query string false "A gjson valid query"
+// @Success 200 {object} response.LevelConfig
+// @Failure 404 {object} response.HTTPError
+// @Failure 500 {object} response.HTTPError
+// @Tags Admin
 func (a *applicationControllerImpl) Query(c echo.Context) error {
 	key := c.QueryParam("key")
 	cluster := c.Param("cluster")
