@@ -8,11 +8,12 @@ import (
 )
 
 func TestName(t *testing.T) {
-	repo, err := git.PlainClone(g.Config.CloneDirectory, false, &git.CloneOptions{
+	repo, err := git.PlainClone("something", false, &git.CloneOptions{
 		URL:           "git@github.com:two-rabbits/ranvier.git",
 		RemoteName:    remoteName,
 		ReferenceName: plumbing.NewRemoteReferenceName("git@github.com:two-rabbits/ranvier.git", "testing_polling"),
 	})
+
 	gp := gitPollerImpl{
 		Config: configuration.Config{
 			CloneDirectory:  "something",
