@@ -19,8 +19,10 @@ require (
 	github.com/labstack/echo/v4 v4.1.5 // indirect
 	github.com/labstack/gommon v0.2.8
 	github.com/mailru/easyjson v0.0.0-20190403194419-1ea4449da983 // indirect
+	github.com/oliveagle/jsonpath v0.0.0-20180606110733-2e52cf6e6852 // indirect
 	github.com/radovskyb/watcher v1.0.6
 	github.com/spf13/viper v1.3.2
+	github.com/src-d/go-git v4.7.0+incompatible
 	github.com/stretchr/objx v0.2.0 // indirect
 	github.com/swaggo/echo-swagger v0.0.0-20190329130007-1219b460a043
 	github.com/swaggo/files v0.0.0-20190110041405-30649e0721f8
@@ -34,4 +36,6 @@ require (
 	golang.org/x/sys v0.0.0-20190509141414-a5b02f93d862 // indirect
 	golang.org/x/text v0.3.2 // indirect
 	golang.org/x/tools v0.0.0-20190511041617-99f201b6807e // indirect
+	gopkg.in/src-d/go-billy.v4 v4.3.0 // indirect
+	gopkg.in/src-d/go-git.v4 v4.11.0
 )

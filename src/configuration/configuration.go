@@ -12,8 +12,8 @@ const ConfigKey = "Config"
 
 type Config struct {
 	Env             string `mapstructure:"env"`
-	ConfigDirectory string `mapstructure:"config_directory"`
-	ReadOnly        bool   `mapstructure:"read_only"`
+	CloneDirectory  string `mapstructure:"clone_directory"`
+	GitPollInterval int    `mapstructure:"git_poll_interval"`
 }
 
 func configFactory(_ axon.Args) axon.Instance {

@@ -12,6 +12,7 @@ const MergeServiceKey = "MergeService"
 
 type MergeService interface {
 	MergeJsonMaps(dest, src *collections.JsonMap) collections.JsonMap
+	MergeJson(dest, src []byte) ([]byte, error)
 }
 
 func overrideMerge(destination, source interface{}) interface{} {
@@ -34,6 +35,17 @@ func overrideMerge(destination, source interface{}) interface{} {
 }
 
 type mergeServiceImpl struct {
+}
+
+func (m *mergeServiceImpl) MergeJson(dest, src []byte) ([]byte, error) {
+	destGabs, _ := gabs.ParseJSON(dest)
+	srcGabs, _ := gabs.ParseJSON(src)
+	err := destGabs.MergeFn(srcGabs, overrideMerge)
+	if err != nil {
+		return nil, err
+	}
+
+	return destGabs.Bytes(), nil
 }
 
 func (m *mergeServiceImpl) MergeJsonMaps(dest, src *collections.JsonMap) collections.JsonMap {
