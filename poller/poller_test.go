@@ -14,6 +14,10 @@ func TestName(t *testing.T) {
 		ReferenceName: plumbing.NewRemoteReferenceName("git@github.com:two-rabbits/ranvier.git", "testing_polling"),
 	})
 
+	if err != nil {
+		t.Fatal(err)
+	}
+
 	gp := gitPollerImpl{
 		Config: configuration.Config{
 			CloneDirectory:  "something",
