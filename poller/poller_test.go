@@ -8,15 +8,15 @@ import (
 )
 
 func TestName(t *testing.T) {
-	repo, err := git.PlainClone("something", false, &git.CloneOptions{
+	repo, _ := git.PlainClone("./something", false, &git.CloneOptions{
 		URL:           "git@github.com:two-rabbits/ranvier.git",
 		RemoteName:    remoteName,
-		ReferenceName: plumbing.NewRemoteReferenceName("git@github.com:two-rabbits/ranvier.git", "testing_polling"),
+		ReferenceName: plumbing.NewBranchReferenceName("testing_polling"),
 	})
 
-	if err != nil {
-		t.Fatal(err)
-	}
+	//if err != nil {
+	//	t.Fatal(err)
+	//}
 
 	gp := gitPollerImpl{
 		Config: configuration.Config{
