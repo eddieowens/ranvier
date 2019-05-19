@@ -22,4 +22,5 @@ func TestName(t *testing.T) {
 	}
 
 	gp.fetchUpdates()
+
 }
