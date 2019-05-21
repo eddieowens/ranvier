@@ -8,15 +8,20 @@ import (
 )
 
 func TestName(t *testing.T) {
-	repo, _ := git.PlainClone("./something", false, &git.CloneOptions{
+	repo, err := git.PlainClone("./something", false, &git.CloneOptions{
 		URL:           "git@github.com:two-rabbits/ranvier.git",
 		RemoteName:    remoteName,
 		ReferenceName: plumbing.NewBranchReferenceName("testing_polling"),
 	})
 
-	//if err != nil {
-	//	t.Fatal(err)
-	//}
+	if err == git.ErrRepositoryAlreadyExists {
+		repo, err = git.PlainOpen("./something")
+		if err != nil {
+			t.Fatal(err)
+		}
+	} else if err != nil {
+		t.Fatal(err)
+	}
 
 	gp := gitPollerImpl{
 		Config: configuration.Config{
