@@ -28,7 +28,8 @@ func TestName(t *testing.T) {
 			CloneDirectory:  "something",
 			GitPollInterval: 10,
 		},
-		repo: repo,
+		repo:       repo,
+		branchName: "testing_polling",
 	}
 
 	gp.fetchUpdates()

@@ -3,10 +3,10 @@ package poller
 import (
 	"errors"
 	"fmt"
-	"github.com/src-d/go-git/plumbing/object"
 	"github.com/two-rabbits/ranvier/src/configuration"
 	"gopkg.in/src-d/go-git.v4"
 	"gopkg.in/src-d/go-git.v4/plumbing"
+	"gopkg.in/src-d/go-git.v4/plumbing/object"
 	"io"
 	"os"
 	"path"
@@ -93,10 +93,11 @@ func (g *gitPollerImpl) isDirEmpty(dir string) bool {
 func (g *gitPollerImpl) fetchUpdates() []string {
 	h, _ := g.repo.Head()
 
-	remHash, _ := g.findLatestRemoteHash()
+	remCommit, _ := g.findLatestRemoteCommit()
+	currentCommit, _ := g.repo.CommitObject(h.Hash())
 
-	originTree, _ := object.GetTree(g.repo.Storer, remHash)
-	branchTree, _ := object.GetTree(g.repo.Storer, h.Hash())
+	originTree, _ := remCommit.Tree()
+	branchTree, _ := currentCommit.Tree()
 
 	c, _ := branchTree.Diff(originTree)
 	if c.Len() <= 0 {
@@ -112,15 +113,19 @@ func (g *gitPollerImpl) fetchUpdates() []string {
 	return nil
 }
 
-func (g *gitPollerImpl) findLatestRemoteHash() (hash plumbing.Hash, err error) {
+func (g *gitPollerImpl) findLatestRemoteCommit() (*object.Commit, error) {
 	_ = g.repo.Fetch(&git.FetchOptions{})
 	rem, _ := g.repo.Remote(remoteName)
 	rfs, _ := rem.List(&git.ListOptions{})
 	branchRef := fmt.Sprintf("refs/heads/%s", g.branchName)
 	for _, v := range rfs {
 		if v.Name().String() == branchRef {
-			return v.Hash(), nil
+			c, err := g.repo.CommitObject(v.Hash())
+			if err != nil {
+				return nil, err
+			}
+			return c, nil
 		}
 	}
-	return hash, errors.New("hash for ref could not be found")
+	return nil, errors.New("commit for ref could not be found")
 }
