@@ -1,6 +1,7 @@
 package poller
 
 import (
+	"errors"
 	"fmt"
 	"github.com/src-d/go-git/plumbing/object"
 	"github.com/two-rabbits/ranvier/src/configuration"
@@ -27,6 +28,7 @@ type gitPollerImpl struct {
 	Config      configuration.Config `inject:"Config"`
 	quitChannel chan bool
 	repo        *git.Repository
+	branchName  string
 }
 
 func (g *gitPollerImpl) Stop() {
@@ -45,6 +47,7 @@ func (g *gitPollerImpl) Start(remote, branch string, onUpdate OnUpdateFunction) 
 	}
 
 	g.repo = repo
+	g.branchName = branch
 
 	onUpdate(g.Config.CloneDirectory)
 
@@ -88,16 +91,11 @@ func (g *gitPollerImpl) isDirEmpty(dir string) bool {
 }
 
 func (g *gitPollerImpl) fetchUpdates() []string {
-	//t, _ := g.repo.Worktree()
 	h, _ := g.repo.Head()
-	_ = g.repo.Fetch(&git.FetchOptions{})
-	rem, _ := g.repo.Remote(remoteName)
-	rfs, _ := rem.List(&git.ListOptions{})
-	for _, v := range rfs {
-		fmt.Println(v.Name(), v.Type(), v.Target(), v.Hash())
-	}
-	latest := rfs[0].Hash()
-	originTree, _ := object.GetTree(g.repo.Storer, latest)
+
+	remHash, _ := g.findLatestRemoteHash()
+
+	originTree, _ := object.GetTree(g.repo.Storer, remHash)
 	branchTree, _ := object.GetTree(g.repo.Storer, h.Hash())
 
 	c, _ := branchTree.Diff(originTree)
@@ -112,4 +110,17 @@ func (g *gitPollerImpl) fetchUpdates() []string {
 	//})
 
 	return nil
+}
+
+func (g *gitPollerImpl) findLatestRemoteHash() (hash plumbing.Hash, err error) {
+	_ = g.repo.Fetch(&git.FetchOptions{})
+	rem, _ := g.repo.Remote(remoteName)
+	rfs, _ := rem.List(&git.ListOptions{})
+	branchRef := fmt.Sprintf("refs/heads/%s", g.branchName)
+	for _, v := range rfs {
+		if v.Name().String() == branchRef {
+			return v.Hash(), nil
+		}
+	}
+	return hash, errors.New("hash for ref could not be found")
 }
