@@ -10,6 +10,7 @@ import (
 	"io"
 	"os"
 	"path"
+	"regexp"
 	"time"
 )
 
@@ -29,13 +30,14 @@ type gitPollerImpl struct {
 	quitChannel chan bool
 	repo        *git.Repository
 	branchName  string
+	filters     []regexp.Regexp
 }
 
 func (g *gitPollerImpl) Stop() {
 	close(g.quitChannel)
 }
 
-func (g *gitPollerImpl) Start(remote, branch string, onUpdate OnUpdateFunction) error {
+func (g *gitPollerImpl) Start(remote, branch string, onUpdate OnUpdateFunction, filters ...regexp.Regexp) error {
 	repo, err := git.PlainClone(g.Config.CloneDirectory, false, &git.CloneOptions{
 		URL:           remote,
 		RemoteName:    remoteName,
@@ -48,6 +50,7 @@ func (g *gitPollerImpl) Start(remote, branch string, onUpdate OnUpdateFunction) 
 
 	g.repo = repo
 	g.branchName = branch
+	g.filters = filters
 
 	onUpdate(g.Config.CloneDirectory)
 
@@ -91,6 +94,8 @@ func (g *gitPollerImpl) isDirEmpty(dir string) bool {
 }
 
 func (g *gitPollerImpl) fetchUpdates() []string {
+	_ = g.repo.Fetch(&git.FetchOptions{})
+
 	h, _ := g.repo.Head()
 
 	remCommit, _ := g.findLatestRemoteCommit()
@@ -99,22 +104,34 @@ func (g *gitPollerImpl) fetchUpdates() []string {
 	originTree, _ := remCommit.Tree()
 	branchTree, _ := currentCommit.Tree()
 
-	c, _ := branchTree.Diff(originTree)
-	if c.Len() <= 0 {
-		return nil
+	diffs, _ := branchTree.Diff(originTree)
+
+	changes := make([]string, 0)
+	for _, d := range diffs {
+		skip := false
+		fp := d.To.Name
+		for _, f := range g.filters {
+			if f.Match([]byte(fp)) {
+				skip = true
+				break
+			}
+		}
+		if skip {
+			continue
+		}
+		changes = append(changes, fp)
 	}
 
-	fmt.Println(c)
+	wt, _ := g.repo.Worktree()
 
-	//_ := t.Pull(&git.PullOptions{
-	//	SingleBranch: true,
-	//})
+	_ = wt.Pull(&git.PullOptions{
+		SingleBranch: true,
+	})
 
-	return nil
+	return changes
 }
 
 func (g *gitPollerImpl) findLatestRemoteCommit() (*object.Commit, error) {
-	_ = g.repo.Fetch(&git.FetchOptions{})
 	rem, _ := g.repo.Remote(remoteName)
 	rfs, _ := rem.List(&git.ListOptions{})
 	branchRef := fmt.Sprintf("refs/heads/%s", g.branchName)
