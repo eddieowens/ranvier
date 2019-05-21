@@ -93,6 +93,9 @@ func (g *gitPollerImpl) fetchUpdates() []string {
 	_ = g.repo.Fetch(&git.FetchOptions{})
 	rem, _ := g.repo.Remote(remoteName)
 	rfs, _ := rem.List(&git.ListOptions{})
+	for _, v := range rfs {
+		fmt.Println(v.Name(), v.Type(), v.Target(), v.Hash())
+	}
 	latest := rfs[0].Hash()
 	originTree, _ := object.GetTree(g.repo.Storer, latest)
 	branchTree, _ := object.GetTree(g.repo.Storer, h.Hash())
