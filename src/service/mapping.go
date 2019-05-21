@@ -8,16 +8,16 @@ import (
 const MappingServiceKey = "MappingService"
 
 type MappingService interface {
-	ToLevelConfigMeta(config *model.LevelConfig) response.LevelConfigMeta
-	ToLevelConfigMetaData(config *model.LevelConfig) *response.LevelConfigMetaData
-	ToLevelConfig(config *model.LevelConfig) response.LevelConfig
-	ToLevelConfigData(config *model.LevelConfig) *response.LevelConfigData
+	ToLevelConfigMeta(config *model.Config) response.LevelConfigMeta
+	ToLevelConfigMetaData(config *model.Config) *response.LevelConfigMetaData
+	ToConfig(config *model.Config) response.LevelConfig
+	ToLevelConfigData(config *model.Config) *response.LevelConfigData
 }
 
 type mappingServiceImpl struct {
 }
 
-func (m *mappingServiceImpl) ToLevelConfigData(config *model.LevelConfig) *response.LevelConfigData {
+func (m *mappingServiceImpl) ToLevelConfigData(config *model.Config) *response.LevelConfigData {
 	if config == nil {
 		return nil
 	}
@@ -29,7 +29,7 @@ func (m *mappingServiceImpl) ToLevelConfigData(config *model.LevelConfig) *respo
 	}
 }
 
-func (m *mappingServiceImpl) ToLevelConfigMetaData(config *model.LevelConfig) *response.LevelConfigMetaData {
+func (m *mappingServiceImpl) ToLevelConfigMetaData(config *model.Config) *response.LevelConfigMetaData {
 	if config == nil {
 		return nil
 	}
@@ -39,7 +39,7 @@ func (m *mappingServiceImpl) ToLevelConfigMetaData(config *model.LevelConfig) *r
 	}
 }
 
-func (m *mappingServiceImpl) ToLevelConfig(config *model.LevelConfig) response.LevelConfig {
+func (m *mappingServiceImpl) ToConfig(config *model.Config) response.LevelConfig {
 	if config == nil {
 		return response.LevelConfig{
 			Data: nil,
@@ -50,7 +50,7 @@ func (m *mappingServiceImpl) ToLevelConfig(config *model.LevelConfig) response.L
 	}
 }
 
-func (m *mappingServiceImpl) ToLevelConfigMeta(config *model.LevelConfig) response.LevelConfigMeta {
+func (m *mappingServiceImpl) ToLevelConfigMeta(config *model.Config) response.LevelConfigMeta {
 	return response.LevelConfigMeta{
 		Data: m.ToLevelConfigMetaData(config),
 	}

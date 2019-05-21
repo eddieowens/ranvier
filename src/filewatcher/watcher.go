@@ -21,12 +21,12 @@ type FileWatcher interface {
 }
 
 type fileWatcherImpl struct {
-	LevelService       state.LevelService         `inject:"LevelService"`
-	State              state.LevelConfigState     `inject:"LevelConfigState"`
-	LevelConfigService service.LevelConfigService `inject:"LevelConfigService"`
-	FileService        service.FileService        `inject:"FileService"`
-	Config             configuration.Config       `inject:"Config"`
-	IdService          state.IdService            `inject:"IdService"`
+	LevelService       state.LevelService    `inject:"LevelService"`
+	State              state.ConfigState     `inject:"ConfigState"`
+	LevelConfigService service.ConfigService `inject:"ConfigControllerService"`
+	FileService        service.FileService   `inject:"FileService"`
+	Config             configuration.Config  `inject:"Config"`
+	IdService          state.IdService       `inject:"IdService"`
 	Watcher            *watcher.Watcher
 }
 

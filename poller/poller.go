@@ -38,13 +38,18 @@ func (g *gitPollerImpl) Stop() {
 }
 
 func (g *gitPollerImpl) Start(remote, branch string, onUpdate OnUpdateFunction, filters ...regexp.Regexp) error {
-	repo, err := git.PlainClone(g.Config.CloneDirectory, false, &git.CloneOptions{
-		URL:           remote,
+	repo, err := git.PlainClone(g.Config.Git.Directory, false, &git.CloneOptions{
+		URL:           g.Config.Git.Remote,
 		RemoteName:    remoteName,
-		ReferenceName: plumbing.NewRemoteReferenceName(remote, branch),
+		ReferenceName: plumbing.NewBranchReferenceName(g.Config.Git.Branch),
 	})
 
-	if err != nil {
+	if err == git.ErrRepositoryAlreadyExists {
+		repo, err = git.PlainOpen("./something")
+		if err != nil {
+			return err
+		}
+	} else if err != nil {
 		return err
 	}
 
@@ -52,9 +57,9 @@ func (g *gitPollerImpl) Start(remote, branch string, onUpdate OnUpdateFunction, 
 	g.branchName = branch
 	g.filters = filters
 
-	onUpdate(g.Config.CloneDirectory)
+	onUpdate(g.Config.Git.Directory)
 
-	ticker := time.NewTicker(time.Duration(g.Config.GitPollInterval) * time.Second)
+	ticker := time.NewTicker(time.Duration(g.Config.Git.PollingInterval) * time.Second)
 	g.quitChannel = make(chan bool)
 
 	go func() {
@@ -64,7 +69,7 @@ func (g *gitPollerImpl) Start(remote, branch string, onUpdate OnUpdateFunction, 
 				changes := g.fetchUpdates()
 				if len(changes) > 0 {
 					for _, c := range changes {
-						fp := path.Join(g.Config.CloneDirectory, c)
+						fp := path.Join(g.Config.Git.Directory, c)
 						onUpdate(fp)
 					}
 				}

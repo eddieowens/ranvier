@@ -19,7 +19,7 @@ type App interface {
 type appImpl struct {
 	Router      router.Router           `inject:"Router"`
 	FileWatcher filewatcher.FileWatcher `inject:"FileWatcher"`
-	State       state.LevelConfigState  `inject:"LevelConfigState"`
+	State       state.ConfigState       `inject:"ConfigState"`
 }
 
 func (a *appImpl) Run() {

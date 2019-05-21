@@ -11,9 +11,15 @@ import (
 const ConfigKey = "Config"
 
 type Config struct {
-	Env             string `mapstructure:"env"`
-	CloneDirectory  string `mapstructure:"clone_directory"`
-	GitPollInterval int    `mapstructure:"git_poll_interval"`
+	Env string    `mapstructure:"env"`
+	Git GitConfig `mapstructure:"git"`
+}
+
+type GitConfig struct {
+	Remote          string `mapstructure:"remote"`
+	Branch          string `mapstructure:"branch"`
+	Directory       string `mapstructure:"directory"`
+	PollingInterval int    `mapstructure:"polling_interval"`
 }
 
 func configFactory(_ axon.Args) axon.Instance {

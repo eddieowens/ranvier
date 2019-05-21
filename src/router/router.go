@@ -12,7 +12,7 @@ type Router interface {
 }
 
 type routerImpl struct {
-	Global      controller.GlobalController      `inject:"GlobalController"`
+	Global      controller.ConfigController      `inject:"ConfigController"`
 	Cluster     controller.ClusterController     `inject:"ClusterController"`
 	Namespace   controller.NamespaceController   `inject:"NamespaceController"`
 	Application controller.ApplicationController `inject:"ApplicationController"`

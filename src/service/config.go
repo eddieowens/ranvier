@@ -10,30 +10,30 @@ import (
 	"net/http"
 )
 
-const LevelConfigServiceKey = "LevelConfigService"
+const ConfigServiceKey = "ConfigService"
 
-type LevelConfigService interface {
-	Update(level model.Level, id model.Id, data []byte) (config *model.LevelConfig, err error)
-	Query(level model.Level, id model.Id, query string) (config *model.LevelConfig, exists bool)
-	MergedQuery(level model.Level, id model.Id, query string) (config *model.LevelConfig, err error)
-	Create(level model.Level, id model.Id, data []byte) (config *model.LevelConfig, err error)
-	Rollback(level model.Level, id model.Id, version int) (config *model.LevelConfig, err error)
-	Exists(level model.Level, id model.Id) bool
-	GetAll(level model.Level) []model.LevelConfig
-	Delete(level model.Level, id model.Id) (*model.LevelConfig, error)
+type ConfigService interface {
+	Update(id model.Id, data []byte) (config *model.Config, err error)
+	Query(id model.Id, query string) (config *model.Config, exists bool)
+	MergedQuery(id model.Id, query string) (config *model.Config, err error)
+	Create(id model.Id, data []byte) (config *model.Config, err error)
+	Rollback(id model.Id, version int) (config *model.Config, err error)
+	Exists(id model.Id) bool
+	GetAll() []model.Config
+	Delete(id model.Id) (*model.Config, error)
 }
 
 type levelConfigServiceImpl struct {
-	State                   state.LevelConfigState        `inject:"LevelConfigState"`
-	FileService             FileService                   `inject:"FileService"`
-	LevelService            state.LevelService            `inject:"LevelService"`
-	IdService               state.IdService               `inject:"IdService"`
-	LevelConfigQueryService state.LevelConfigQueryService `inject:"LevelConfigQueryService"`
-	MergeService            MergeService                  `inject:"MergeService"`
-	Json                    jsoniter.API                  `inject:"Json"`
+	State                   state.ConfigMap          `inject:"ConfigState"`
+	FileService             FileService              `inject:"FileService"`
+	LevelService            state.LevelService       `inject:"LevelService"`
+	IdService               state.IdService          `inject:"IdService"`
+	LevelConfigQueryService state.ConfigQueryService `inject:"ConfigQueryService"`
+	MergeService            MergeService             `inject:"MergeService"`
+	Json                    jsoniter.API             `inject:"Json"`
 }
 
-func (l *levelConfigServiceImpl) Delete(level model.Level, id model.Id) (*model.LevelConfig, error) {
+func (l *levelConfigServiceImpl) Delete(id model.Id) (*model.Config, error) {
 	resp, exists := l.State.Get(level, id)
 	og := l.IdService.IdNames(id)
 	name := l.IdService.Name(id)
@@ -43,7 +43,7 @@ func (l *levelConfigServiceImpl) Delete(level model.Level, id model.Id) (*model.
 	}
 	if level != model.Global && level != model.Application {
 		for i := level; i <= model.Application; i++ {
-			err := l.State.WithLock(i, func(configs map[model.Id]model.LevelConfig) error {
+			err := l.State.WithLock(i, func(configs map[model.Id]model.Config) error {
 				for k, v := range configs {
 					idNames := l.IdService.IdNames(k)
 					shouldDelete := false
@@ -77,15 +77,15 @@ func (l *levelConfigServiceImpl) Delete(level model.Level, id model.Id) (*model.
 	return &resp, nil
 }
 
-func (l *levelConfigServiceImpl) GetAll(level model.Level) []model.LevelConfig {
+func (l *levelConfigServiceImpl) GetAll() []model.Config {
 	return l.State.GetAll(level)
 }
 
-func (l *levelConfigServiceImpl) MergedQuery(level model.Level, id model.Id, query string) (config *model.LevelConfig, err error) {
+func (l *levelConfigServiceImpl) MergedQuery(id model.Id, query string) (config *model.Config, err error) {
 	levelInt := int(level)
 	names := l.IdService.Names(id)
 	mergedConfig := collections.NewJsonMap([]byte("{}"))
-	var levelConfig model.LevelConfig
+	var levelConfig model.Config
 	for i := 0; i <= levelInt; i++ {
 		xLevel := model.Level(i)
 		exists := false
@@ -112,8 +112,8 @@ func (l *levelConfigServiceImpl) MergedQuery(level model.Level, id model.Id, que
 	}
 }
 
-func (l *levelConfigServiceImpl) Update(level model.Level, id model.Id, data []byte) (config *model.LevelConfig, err error) {
-	err = l.State.WithLockWindow(level, id, func(levelConfig model.LevelConfig, exists bool, _ state.Saver) error {
+func (l *levelConfigServiceImpl) Update(id model.Id, data []byte) (config *model.Config, err error) {
+	err = l.State.WithLockWindow(level, id, func(levelConfig model.Config, exists bool, _ state.Saver) error {
 		if exists {
 			newConfig := collections.NewJsonMap(data)
 			mergedData := l.MergeService.MergeJsonMaps(&levelConfig.Config, &newConfig)
@@ -132,17 +132,17 @@ func (l *levelConfigServiceImpl) Update(level model.Level, id model.Id, data []b
 	return config, err
 }
 
-func (l *levelConfigServiceImpl) Exists(level model.Level, id model.Id) bool {
+func (l *levelConfigServiceImpl) Exists(id model.Id) bool {
 	_, exists := l.State.Get(level, id)
 	return exists
 }
 
-func (l *levelConfigServiceImpl) Rollback(level model.Level, id model.Id, version int) (config *model.LevelConfig, err error) {
+func (l *levelConfigServiceImpl) Rollback(id model.Id, version int) (config *model.Config, err error) {
 	versioned, exists := l.State.Get(level, l.IdService.VersionedId(id, version))
 	if !exists {
 		return config, echo.NewHTTPError(http.StatusNotFound, fmt.Sprintf("%s version %d does not exist", l.IdService.Name(id), version))
 	}
-	err = l.State.WithLockWindow(level, id, func(levelConfig model.LevelConfig, _ bool, _ state.Saver) error {
+	err = l.State.WithLockWindow(level, id, func(levelConfig model.Config, _ bool, _ state.Saver) error {
 		if levelConfig.Version == version {
 			config = &levelConfig
 			return nil
@@ -157,11 +157,11 @@ func (l *levelConfigServiceImpl) Rollback(level model.Level, id model.Id, versio
 	return
 }
 
-func (l *levelConfigServiceImpl) Create(level model.Level, id model.Id, data []byte) (config *model.LevelConfig, err error) {
+func (l *levelConfigServiceImpl) Create(id model.Id, data []byte) (config *model.Config, err error) {
 	_, exists := l.State.Get(level, id)
 
 	if !exists {
-		err := l.State.WithLockWindow(level, id, func(levelConfig model.LevelConfig, exists bool, _ state.Saver) error {
+		err := l.State.WithLockWindow(level, id, func(levelConfig model.Config, exists bool, _ state.Saver) error {
 			if exists {
 				return echo.NewHTTPError(http.StatusConflict, fmt.Sprintf("%s already exists", id))
 			}
@@ -181,7 +181,7 @@ func (l *levelConfigServiceImpl) Create(level model.Level, id model.Id, data []b
 	return
 }
 
-func (l *levelConfigServiceImpl) Query(level model.Level, id model.Id, query string) (config *model.LevelConfig, exists bool) {
+func (l *levelConfigServiceImpl) Query(id model.Id, query string) (config *model.Config, exists bool) {
 	c, ok := l.State.Query(level, id, query)
 	if !ok {
 		return nil, ok
@@ -189,8 +189,8 @@ func (l *levelConfigServiceImpl) Query(level model.Level, id model.Id, query str
 	return &c, ok
 }
 
-func (l *levelConfigServiceImpl) newLevelConfig(level model.Level, id model.Id, data []byte) model.LevelConfig {
-	config := model.LevelConfig{
+func (l *levelConfigServiceImpl) newLevelConfig(level model.Level, id model.Id, data []byte) model.Config {
+	config := model.Config{
 		Id:      id,
 		Name:    l.IdService.Name(id),
 		Version: 1,
@@ -201,7 +201,7 @@ func (l *levelConfigServiceImpl) newLevelConfig(level model.Level, id model.Id, 
 	return config
 }
 
-func (l *levelConfigServiceImpl) create(levelConfig *model.LevelConfig) error {
+func (l *levelConfigServiceImpl) create(levelConfig *model.Config) error {
 	if err := l.FileService.Create(*levelConfig); err != nil {
 		if sErr, ok := err.(*FileExistsError); !ok {
 			return echo.NewHTTPError(http.StatusNotFound, sErr.Error())
