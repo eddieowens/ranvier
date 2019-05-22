@@ -1,16 +1,16 @@
 package service
 
 import (
-	"github.com/two-rabbits/ranvier/src/exchange/response"
-	"github.com/two-rabbits/ranvier/src/model"
+	"github.com/two-rabbits/ranvier/server/exchange/response"
+	"github.com/two-rabbits/ranvier/server/model"
 )
 
 const MappingServiceKey = "MappingService"
 
 type MappingService interface {
-	ToLevelConfigMeta(config *model.Config) response.LevelConfigMeta
+	ToLevelConfigMeta(config *model.Config) response.ConfigMeta
 	ToLevelConfigMetaData(config *model.Config) *response.LevelConfigMetaData
-	ToConfig(config *model.Config) response.LevelConfig
+	ToConfig(config *model.Config) response.Config
 	ToLevelConfigData(config *model.Config) *response.LevelConfigData
 }
 
@@ -23,9 +23,8 @@ func (m *mappingServiceImpl) ToLevelConfigData(config *model.Config) *response.L
 	}
 
 	return &response.LevelConfigData{
-		Name:    config.Name,
-		Version: config.Version,
-		Config:  config.Config,
+		Name:   config.Name,
+		Config: config.Data,
 	}
 }
 
@@ -34,24 +33,23 @@ func (m *mappingServiceImpl) ToLevelConfigMetaData(config *model.Config) *respon
 		return nil
 	}
 	return &response.LevelConfigMetaData{
-		Name:    config.Name,
-		Version: config.Version,
+		Name: config.Name,
 	}
 }
 
-func (m *mappingServiceImpl) ToConfig(config *model.Config) response.LevelConfig {
+func (m *mappingServiceImpl) ToConfig(config *model.Config) response.Config {
 	if config == nil {
-		return response.LevelConfig{
+		return response.Config{
 			Data: nil,
 		}
 	}
-	return response.LevelConfig{
+	return response.Config{
 		Data: m.ToLevelConfigData(config),
 	}
 }
 
-func (m *mappingServiceImpl) ToLevelConfigMeta(config *model.Config) response.LevelConfigMeta {
-	return response.LevelConfigMeta{
+func (m *mappingServiceImpl) ToLevelConfigMeta(config *model.Config) response.ConfigMeta {
+	return response.ConfigMeta{
 		Data: m.ToLevelConfigMetaData(config),
 	}
 }

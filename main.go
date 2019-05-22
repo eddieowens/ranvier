@@ -1,7 +1,7 @@
 package main
 
 import (
-	"github.com/two-rabbits/ranvier/src"
+	"github.com/two-rabbits/ranvier/server"
 )
 
 // @title Ranvier
@@ -13,9 +13,9 @@ import (
 // @license.url http://www.apache.org/licenses/LICENSE-2.0.html
 // @BasePath /api
 func main() {
-	src.Injector = src.CreateInjector()
+	server.Injector = server.CreateInjector()
 
-	app := src.Injector.Get(src.AppKey).GetStructPtr().(src.App)
+	app := server.Injector.Get(server.AppKey).GetStructPtr().(server.App)
 
 	app.Run()
 }

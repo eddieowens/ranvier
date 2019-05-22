@@ -3,7 +3,7 @@ package compiler
 import (
 	"github.com/json-iterator/go"
 	"github.com/two-rabbits/ranvier/compiler/model"
-	"github.com/two-rabbits/ranvier/src/service"
+	"github.com/two-rabbits/ranvier/server/service"
 	"io/ioutil"
 )
 

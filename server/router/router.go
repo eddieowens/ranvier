@@ -2,7 +2,7 @@ package router
 
 import (
 	"github.com/labstack/echo"
-	"github.com/two-rabbits/ranvier/src/controller"
+	"github.com/two-rabbits/ranvier/server/controller"
 )
 
 const RouterKey = "Router"
@@ -12,18 +12,12 @@ type Router interface {
 }
 
 type routerImpl struct {
-	Global      controller.ConfigController      `inject:"ConfigController"`
-	Cluster     controller.ClusterController     `inject:"ClusterController"`
-	Namespace   controller.NamespaceController   `inject:"NamespaceController"`
-	Application controller.ApplicationController `inject:"ApplicationController"`
+	ConfigController controller.ConfigController `inject:"ConfigController"`
 }
 
 func (r *routerImpl) getControllers() []controller.Controller {
 	return []controller.Controller{
-		r.Global,
-		r.Cluster,
-		r.Namespace,
-		r.Application,
+		r.ConfigController,
 	}
 }
 

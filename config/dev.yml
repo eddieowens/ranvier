@@ -1,1 +1,5 @@
-config_directory: ./something
+git:
+  directory: ./something
+  remote: git@github.com:two-rabbits/ranvier.git
+  branch: master
+  polling_interval: 10

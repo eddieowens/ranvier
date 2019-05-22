@@ -4,14 +4,12 @@ import (
 	"fmt"
 	"github.com/Jeffail/gabs"
 	"github.com/imdario/mergo"
-	"github.com/two-rabbits/ranvier/src/collections"
 	"reflect"
 )
 
 const MergeServiceKey = "MergeService"
 
 type MergeService interface {
-	MergeJsonMaps(dest, src *collections.JsonMap) collections.JsonMap
 	MergeJson(dest, src []byte) ([]byte, error)
 }
 
@@ -46,16 +44,4 @@ func (m *mergeServiceImpl) MergeJson(dest, src []byte) ([]byte, error) {
 	}
 
 	return destGabs.Bytes(), nil
-}
-
-func (m *mergeServiceImpl) MergeJsonMaps(dest, src *collections.JsonMap) collections.JsonMap {
-	destGabs, _ := gabs.ParseJSON(dest.GetRaw())
-	srcGabs, _ := gabs.ParseJSON(src.GetRaw())
-
-	err := destGabs.MergeFn(srcGabs, overrideMerge)
-	if err != nil {
-		fmt.Println(err)
-	}
-
-	return collections.NewJsonMap(destGabs.Bytes())
 }

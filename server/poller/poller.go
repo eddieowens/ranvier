@@ -3,13 +3,14 @@ package poller
 import (
 	"errors"
 	"fmt"
-	"github.com/two-rabbits/ranvier/src/configuration"
+	"github.com/two-rabbits/ranvier/server/configuration"
 	"gopkg.in/src-d/go-git.v4"
 	"gopkg.in/src-d/go-git.v4/plumbing"
 	"gopkg.in/src-d/go-git.v4/plumbing/object"
 	"io"
 	"os"
 	"path"
+	"path/filepath"
 	"regexp"
 	"time"
 )
@@ -21,7 +22,7 @@ const remoteName = "origin"
 type OnUpdateFunction func(directory string)
 
 type GitPoller interface {
-	Start(remote, branch string, OnUpdate OnUpdateFunction) error
+	Start(OnUpdate OnUpdateFunction, filters ...regexp.Regexp) error
 	Stop()
 }
 
@@ -37,7 +38,7 @@ func (g *gitPollerImpl) Stop() {
 	close(g.quitChannel)
 }
 
-func (g *gitPollerImpl) Start(remote, branch string, onUpdate OnUpdateFunction, filters ...regexp.Regexp) error {
+func (g *gitPollerImpl) Start(onUpdate OnUpdateFunction, filters ...regexp.Regexp) error {
 	repo, err := git.PlainClone(g.Config.Git.Directory, false, &git.CloneOptions{
 		URL:           g.Config.Git.Remote,
 		RemoteName:    remoteName,
@@ -45,7 +46,7 @@ func (g *gitPollerImpl) Start(remote, branch string, onUpdate OnUpdateFunction, 
 	})
 
 	if err == git.ErrRepositoryAlreadyExists {
-		repo, err = git.PlainOpen("./something")
+		repo, err = git.PlainOpen(g.Config.Git.Directory)
 		if err != nil {
 			return err
 		}
@@ -54,10 +55,13 @@ func (g *gitPollerImpl) Start(remote, branch string, onUpdate OnUpdateFunction, 
 	}
 
 	g.repo = repo
-	g.branchName = branch
+	g.branchName = g.Config.Git.Branch
 	g.filters = filters
 
-	onUpdate(g.Config.Git.Directory)
+	err = g.initialUpdate(onUpdate)
+	if err != nil {
+		return err
+	}
 
 	ticker := time.NewTicker(time.Duration(g.Config.Git.PollingInterval) * time.Second)
 	g.quitChannel = make(chan bool)
@@ -113,18 +117,10 @@ func (g *gitPollerImpl) fetchUpdates() []string {
 
 	changes := make([]string, 0)
 	for _, d := range diffs {
-		skip := false
 		fp := d.To.Name
-		for _, f := range g.filters {
-			if f.Match([]byte(fp)) {
-				skip = true
-				break
-			}
+		if g.filter(fp) {
+			changes = append(changes, fp)
 		}
-		if skip {
-			continue
-		}
-		changes = append(changes, fp)
 	}
 
 	wt, _ := g.repo.Worktree()
@@ -150,4 +146,25 @@ func (g *gitPollerImpl) findLatestRemoteCommit() (*object.Commit, error) {
 		}
 	}
 	return nil, errors.New("commit for ref could not be found")
+}
+
+func (g *gitPollerImpl) filter(file string) bool {
+	for _, f := range g.filters {
+		if !f.Match([]byte(file)) {
+			return false
+		}
+	}
+	return true
+}
+
+func (g *gitPollerImpl) initialUpdate(onUpdate OnUpdateFunction) error {
+	return filepath.Walk(g.Config.Git.Directory, func(path string, _ os.FileInfo, err error) error {
+		if err != nil {
+			return filepath.SkipDir
+		}
+		if g.filter(path) {
+			onUpdate(path)
+		}
+		return nil
+	})
 }

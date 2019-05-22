@@ -2,8 +2,8 @@ package controller
 
 import (
 	"github.com/labstack/echo"
-	"github.com/two-rabbits/ranvier/src/model"
-	"github.com/two-rabbits/ranvier/src/service"
+	"github.com/two-rabbits/ranvier/server/model"
+	"github.com/two-rabbits/ranvier/server/service"
 	"net/http"
 )
 
@@ -22,7 +22,7 @@ func (g *configControllerImpl) Query(c echo.Context) error {
 	key := c.QueryParam("key")
 	name := c.QueryParam("name")
 
-	data, err := g.ConfigControllerService.Query(key)
+	data, err := g.ConfigControllerService.Query(name, key)
 	if err != nil {
 		return err
 	}
