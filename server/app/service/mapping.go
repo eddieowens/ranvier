@@ -1,8 +1,8 @@
 package service
 
 import (
-	"github.com/two-rabbits/ranvier/server/exchange/response"
-	"github.com/two-rabbits/ranvier/server/model"
+	"github.com/two-rabbits/ranvier/server/app/exchange/response"
+	"github.com/two-rabbits/ranvier/server/app/model"
 )
 
 const MappingServiceKey = "MappingService"

@@ -3,8 +3,8 @@ package service
 import (
 	"github.com/json-iterator/go"
 	"github.com/oliveagle/jsonpath"
-	"github.com/two-rabbits/ranvier/server/model"
-	"github.com/two-rabbits/ranvier/server/state"
+	"github.com/two-rabbits/ranvier/server/app/model"
+	"github.com/two-rabbits/ranvier/server/app/state"
 )
 
 const ConfigQueryServiceKey = "ConfigQueryService"

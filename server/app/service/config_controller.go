@@ -3,7 +3,7 @@ package service
 import (
 	"fmt"
 	"github.com/labstack/echo"
-	"github.com/two-rabbits/ranvier/server/exchange/response"
+	"github.com/two-rabbits/ranvier/server/app/exchange/response"
 	"net/http"
 )
 

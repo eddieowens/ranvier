@@ -29,6 +29,7 @@ func configFactory(_ axon.Args) axon.Instance {
 	v.SetEnvPrefix("cubby")
 	v.SetConfigType("yaml")
 	v.AddConfigPath("./config")
+	v.AddConfigPath("./server/app/config")
 	v.SetConfigName("config")
 	if err := v.ReadInConfig(); err != nil {
 		fmt.Println(err)

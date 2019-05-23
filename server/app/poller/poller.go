@@ -3,7 +3,7 @@ package poller
 import (
 	"errors"
 	"fmt"
-	"github.com/two-rabbits/ranvier/server/configuration"
+	"github.com/two-rabbits/ranvier/server/app/configuration"
 	"gopkg.in/src-d/go-git.v4"
 	"gopkg.in/src-d/go-git.v4/plumbing"
 	"gopkg.in/src-d/go-git.v4/plumbing/object"

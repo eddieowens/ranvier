@@ -2,8 +2,8 @@ package controller
 
 import (
 	"github.com/labstack/echo"
-	"github.com/two-rabbits/ranvier/server/model"
-	"github.com/two-rabbits/ranvier/server/service"
+	"github.com/two-rabbits/ranvier/server/app/model"
+	"github.com/two-rabbits/ranvier/server/app/service"
 	"net/http"
 )
 

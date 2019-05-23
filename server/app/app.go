@@ -1,14 +1,14 @@
-package server
+package app
 
 import (
 	"fmt"
 	"github.com/labstack/echo"
 	"github.com/labstack/echo/middleware"
 	"github.com/two-rabbits/ranvier/compiler"
-	_ "github.com/two-rabbits/ranvier/server/docs"
-	"github.com/two-rabbits/ranvier/server/poller"
-	"github.com/two-rabbits/ranvier/server/router"
-	"github.com/two-rabbits/ranvier/server/swagger"
+	_ "github.com/two-rabbits/ranvier/server/app/docs"
+	"github.com/two-rabbits/ranvier/server/app/poller"
+	"github.com/two-rabbits/ranvier/server/app/router"
+	"github.com/two-rabbits/ranvier/server/app/swagger"
 	"regexp"
 	"strings"
 )
@@ -25,7 +25,7 @@ type appImpl struct {
 }
 
 func onUpdate(filepath string) {
-	// compile the filepath
+	fmt.Println("update ", filepath)
 }
 
 func (a *appImpl) Run() {

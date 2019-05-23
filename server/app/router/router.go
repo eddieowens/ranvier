@@ -2,7 +2,7 @@ package router
 
 import (
 	"github.com/labstack/echo"
-	"github.com/two-rabbits/ranvier/server/controller"
+	"github.com/two-rabbits/ranvier/server/app/controller"
 )
 
 const RouterKey = "Router"

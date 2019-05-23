@@ -1,7 +1,7 @@
 package controller
 
 import (
-	"github.com/two-rabbits/ranvier/server/model"
+	"github.com/two-rabbits/ranvier/server/app/model"
 )
 
 type Controller interface {

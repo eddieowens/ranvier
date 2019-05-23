@@ -20,8 +20,7 @@
 *.iml
 out
 gen
-server/docs/docs.go
-server/docs/swagger.*
 
 something
 vendor
+server/app/docs/

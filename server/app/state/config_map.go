@@ -2,8 +2,7 @@ package state
 
 import (
 	"github.com/eddieowens/axon"
-	"github.com/json-iterator/go"
-	"github.com/two-rabbits/ranvier/server/model"
+	"github.com/two-rabbits/ranvier/server/app/model"
 	"sync"
 )
 
@@ -35,7 +34,6 @@ func configMapFactory(_ axon.Args) axon.Instance {
 type configMapImpl struct {
 	m    map[string]model.Config
 	lock sync.RWMutex
-	Json jsoniter.API `inject:"Json"`
 }
 
 func (s *configMapImpl) WithLock(runner WriteRunner) error {
