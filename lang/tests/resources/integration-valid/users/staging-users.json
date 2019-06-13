@@ -1,0 +1,12 @@
+{
+  "name": "StagingUsers",
+  "type": "yaml",
+  "extends": [
+    "../staging.json"
+  ],
+  "config": {
+    "db": {
+      "pool": 5
+    }
+  }
+}

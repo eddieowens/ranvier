@@ -1,0 +1,8 @@
+{
+  "config": {
+    "db": {
+      "url": "username@pg.staging.mycompany.com:5432",
+      "pool": 15
+    }
+  }
+}

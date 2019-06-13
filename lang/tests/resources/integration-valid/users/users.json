@@ -1,0 +1,9 @@
+{
+  "name": "Users",
+  "type": "toml",
+  "config": {
+    "db": {
+      "pool": 3
+    }
+  }
+}
