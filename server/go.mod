@@ -5,7 +5,8 @@ go 1.12
 require (
 	github.com/alecthomas/template v0.0.0-20160405071501-a0175ee3bccc
 	github.com/eddieowens/axon v0.6.0
-	github.com/eddieowens/ranvier/commons v0.0.0-20190613071118-940eccb2f68b // indirect
+	github.com/eddieowens/ranvier/commons v0.0.0-20190615195836-8b8488d6ebce // indirect
+	github.com/eddieowens/ranvier/lang v0.0.0-20190615195836-8b8488d6ebce // indirect
 	github.com/go-openapi/jsonpointer v0.19.0 // indirect
 	github.com/go-openapi/jsonreference v0.19.0 // indirect
 	github.com/go-openapi/spec v0.19.0 // indirect
