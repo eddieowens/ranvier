@@ -26,7 +26,7 @@ type Git struct {
 	PollingInterval int    `mapstructure:"polling_interval"`
 	Username        string `mapstructure:"username"`
 	Password        string `mapstructure:"password"`
-	SSHKey          string `mapstructure:"ssh_key"`
+	SSHKey          string `mapstructure:"sshkey"`
 }
 
 type Compiler struct {
@@ -42,18 +42,19 @@ func defaultConfig() *Config {
 func configFactory(_ axon.Injector, _ axon.Args) axon.Instance {
 	v := viper.New()
 	v.SetConfigType("yaml")
+	v.SetEnvPrefix("ranvier")
+	v.SetEnvKeyReplacer(strings.NewReplacer(".", "_"))
+	v.AllowEmptyEnv(false)
+	_, filename, _, _ := runtime.Caller(0)
+	d, _ := path.Split(filename)
+	v.AddConfigPath(path.Join(d, "..", "..", "config"))
+	v.AddConfigPath("./config")
 
 	b, _ := yaml.Marshal(defaultConfig())
 	defaultConfig := bytes.NewReader(b)
 	if err := v.MergeConfig(defaultConfig); err != nil {
 		panic(err)
 	}
-
-	_, filename, _, _ := runtime.Caller(0)
-	d, _ := path.Split(filename)
-
-	v.AddConfigPath(path.Join(d, "..", "..", "config"))
-	v.AddConfigPath("./config")
 
 	v.SetConfigName("config")
 	if err := v.MergeInConfig(); err != nil {
@@ -66,9 +67,6 @@ func configFactory(_ axon.Injector, _ axon.Args) axon.Instance {
 	}
 
 	v.AutomaticEnv()
-	v.SetEnvPrefix("ranvier")
-	v.SetEnvKeyReplacer(strings.NewReplacer(".", "_"))
-	v.AllowEmptyEnv(false)
 
 	config := Config{}
 	if err := v.Unmarshal(&config); err != nil {
