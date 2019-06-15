@@ -8,6 +8,9 @@ import (
 	"gopkg.in/src-d/go-git.v4/plumbing/transport/http"
 	gitssh "gopkg.in/src-d/go-git.v4/plumbing/transport/ssh"
 	"io/ioutil"
+	"os"
+	"path"
+	"strings"
 )
 
 const AuthMethodKey = "AuthMethod"
@@ -32,8 +35,12 @@ func usernamePassword(username, password string) transport.AuthMethod {
 	}
 }
 
-func sshKeyFromFile(path string) transport.AuthMethod {
-	key, err := ioutil.ReadFile(path)
+func sshKeyFromFile(fp string) transport.AuthMethod {
+	if strings.HasPrefix(fp, "~/") {
+		home, _ := os.UserHomeDir()
+		fp = path.Join(home, fp[2:])
+	}
+	key, err := ioutil.ReadFile(fp)
 	if err != nil {
 		panic(err)
 	}

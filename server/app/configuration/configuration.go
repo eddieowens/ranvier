@@ -17,20 +17,25 @@ type Config struct {
 	Env      string   `mapstructure:"env"`
 	Git      Git      `mapstructure:"git"`
 	Compiler Compiler `mapstructure:"compiler"`
+	Server   Server   `mapstructure:"server"`
 }
 
 type Git struct {
 	Remote          string `mapstructure:"remote"`
 	Branch          string `mapstructure:"branch"`
 	Directory       string `mapstructure:"directory"`
-	PollingInterval int    `mapstructure:"polling_interval"`
+	PollingInterval int    `mapstructure:"pollinginterval"`
 	Username        string `mapstructure:"username"`
 	Password        string `mapstructure:"password"`
 	SSHKey          string `mapstructure:"sshkey"`
 }
 
 type Compiler struct {
-	OutputDirectory string `mapstructure:"output_directory"`
+	OutputDirectory string `mapstructure:"outputdirectory"`
+}
+
+type Server struct {
+	Port int `mapstructure:"port"`
 }
 
 func defaultConfig() *Config {
