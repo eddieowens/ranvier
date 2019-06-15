@@ -27,10 +27,15 @@ github.com/eddieowens/ranvier/commons v0.0.0-20190603062026-77c598143a2a/go.mod 
 github.com/eddieowens/ranvier/commons v0.0.0-20190609192948-7e589760de1e h1:iqqhoQW0zIX1gMd/mcvvY4YQyhsZafo4lFFTBjOPv4I=
 github.com/eddieowens/ranvier/commons v0.0.0-20190609192948-7e589760de1e/go.mod h1:Jpv1orJiWyF0h99hN9bRFeqzV4x5rssFEWOstBJpenE=
 github.com/eddieowens/ranvier/commons v0.0.0-20190609204105-3aca16beb207 h1:I5HnCne/bFgKm9gwBX1L3ZT0qx2g4fr6Mrzoup7b6fQ=
+github.com/eddieowens/ranvier/commons v0.0.0-20190613071118-940eccb2f68b/go.mod h1:Jpv1orJiWyF0h99hN9bRFeqzV4x5rssFEWOstBJpenE=
+github.com/eddieowens/ranvier/commons v0.0.0-20190615195836-8b8488d6ebce/go.mod h1:Jpv1orJiWyF0h99hN9bRFeqzV4x5rssFEWOstBJpenE=
 github.com/eddieowens/ranvier/lang v0.0.0-20190608191958-03bba0ed0902 h1:dudUOAvVtx20uFoNnHyEdbjRdvekq5Aj+h6t005h7eM=
 github.com/eddieowens/ranvier/lang v0.0.0-20190608191958-03bba0ed0902/go.mod h1:kJC82e6wpzyuESrI/W31liuKaux+GwnVpIFtQGeBVEk=
+github.com/eddieowens/ranvier/lang v0.0.0-20190615195836-8b8488d6ebce/go.mod h1:1PKyrywEXma3nRvBR7GYuTtLJjAKq5w4xbSNcfbm18c=
 github.com/eddieowens/ranvier/server v0.0.0-20190609204105-3aca16beb207 h1:yZFojGWUrsuaGz1qhKBmKKwuee9KmTbSk1r18IE5MDg=
 github.com/eddieowens/ranvier/server v0.0.0-20190609204105-3aca16beb207/go.mod h1:gd0JYsLb5Lxe4P2FsU6gwmqJDy2UOvcDisa5P9qLjNk=
+github.com/eddieowens/ranvier/server v0.0.0-20190615200506-d081ca4dcc72 h1:PocQg6gfu/4D5wswZDyTnixxwddbfW//0WKhTF4Oal0=
+github.com/eddieowens/ranvier/server v0.0.0-20190615200506-d081ca4dcc72/go.mod h1:Kki+DVYec7oODVtBDnc4f5R1bnHR2rlaG7kK/UuYCWA=
 github.com/emirpasic/gods v1.9.0 h1:rUF4PuzEjMChMiNsVjdI+SyLu7rEqpQ5reNFnhC7oFo=
 github.com/emirpasic/gods v1.9.0/go.mod h1:YfzfFFoVP/catgzJb4IKIqXjX78Ha8FMSDh3ymbK86o=
 github.com/flynn/go-shlex v0.0.0-20150515145356-3f9db97f8568/go.mod h1:xEzjJPgXI435gkrCt3MPfRiAkVrwSbHsst4LCFVfpJc=

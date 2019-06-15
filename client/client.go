@@ -134,11 +134,10 @@ func (c *clientImpl) query(config *model.Config, query string) (*model.Config, e
 	}, nil
 }
 
-func (c *clientImpl) fetchAndLoadConfig(name string) (conf *model.Config, err error) {
-	exists := false
-	conf, exists = c.ConfigMap.Get(name)
+func (c *clientImpl) fetchAndLoadConfig(name string) (*model.Config, error) {
+	conf, exists := c.ConfigMap.Get(name)
 	if !exists {
-		conf, err = c.fetchConfig(name, "")
+		conf, err := c.fetchConfig(name, "")
 		if err != nil {
 			conf, err = c.loadFromDisk(name)
 			if err != nil {
@@ -154,7 +153,7 @@ func (c *clientImpl) fetchAndLoadConfig(name string) (conf *model.Config, err er
 
 	c.ConfigMap.Set(conf)
 
-	return
+	return &conf, nil
 }
 
 func (c *clientImpl) fetchConfig(name string, query string) (*model.Config, error) {
