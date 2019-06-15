@@ -40,6 +40,8 @@ github.com/eddieowens/ranvier/commons v0.0.0-20190609190538-dabb2893278a h1:0H/W
 github.com/eddieowens/ranvier/commons v0.0.0-20190609192832-d8e0252ea75e h1:k9d0BmCDdz9TrGUsw6bHWi8kTOKgtIExV6pjPSr1ae0=
 github.com/eddieowens/ranvier/commons v0.0.0-20190609192832-d8e0252ea75e/go.mod h1:Jpv1orJiWyF0h99hN9bRFeqzV4x5rssFEWOstBJpenE=
 github.com/eddieowens/ranvier/commons v0.0.0-20190609203708-4120361897a4 h1:cTNJZtaPb+xr59RnqUIkp+XyVxXwhqX+JfTrr+sp9Fg=
+github.com/eddieowens/ranvier/commons v0.0.0-20190613071118-940eccb2f68b h1:HtM0+Id9JesTIUcSogQTuK1LgjwxWbRC178CpuqAKJ4=
+github.com/eddieowens/ranvier/commons v0.0.0-20190613071118-940eccb2f68b/go.mod h1:Jpv1orJiWyF0h99hN9bRFeqzV4x5rssFEWOstBJpenE=
 github.com/eddieowens/ranvier/lang v0.0.0-20190603061000-ce346be356e2 h1:e7aJGOYCvndlIlaIw4IUO+zAifyxjQpdSckqq5d6UEo=
 github.com/eddieowens/ranvier/lang v0.0.0-20190603061000-ce346be356e2/go.mod h1:2uhoVuKozN2KezP804tUDqiVC64H3juYluOR3yxOwzM=
 github.com/eddieowens/ranvier/lang v0.0.0-20190603062026-77c598143a2a h1:RKxNteLP2V01XCiECjkvOuevcY9NwybKdRC9NtOn1ss=

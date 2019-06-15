@@ -16,6 +16,8 @@ github.com/eddieowens/ranvier/commons v0.0.0-20190603060848-fe941be4cbbf h1:pihy
 github.com/eddieowens/ranvier/commons v0.0.0-20190603060848-fe941be4cbbf/go.mod h1:Jpv1orJiWyF0h99hN9bRFeqzV4x5rssFEWOstBJpenE=
 github.com/eddieowens/ranvier/commons v0.0.0-20190603062026-77c598143a2a h1:qBPgR2Jzzq9cUxe7UPwnZwU99xs3Z/vJlXxxtecdCxs=
 github.com/eddieowens/ranvier/commons v0.0.0-20190603062026-77c598143a2a/go.mod h1:Jpv1orJiWyF0h99hN9bRFeqzV4x5rssFEWOstBJpenE=
+github.com/eddieowens/ranvier/commons v0.0.0-20190613071118-940eccb2f68b h1:HtM0+Id9JesTIUcSogQTuK1LgjwxWbRC178CpuqAKJ4=
+github.com/eddieowens/ranvier/commons v0.0.0-20190613071118-940eccb2f68b/go.mod h1:Jpv1orJiWyF0h99hN9bRFeqzV4x5rssFEWOstBJpenE=
 github.com/go-playground/locales v0.12.1 h1:2FITxuFt/xuCNP1Acdhv62OzaCiviiE4kotfhkmOqEc=
 github.com/go-playground/locales v0.12.1/go.mod h1:IUMDtCfWo/w/mtMfIE/IG2K+Ey3ygWanZIBtBW0W2TM=
 github.com/go-playground/universal-translator v0.16.0 h1:X++omBR/4cE2MNg91AoC3rmGrCjJ8eAeUP/K/EKx4DM=

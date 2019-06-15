@@ -5,7 +5,7 @@ go 1.12
 require (
 	github.com/BurntSushi/toml v0.3.1
 	github.com/eddieowens/axon v0.5.0
-	github.com/eddieowens/ranvier/commons v0.0.0-20190603062026-77c598143a2a
+	github.com/eddieowens/ranvier/commons v0.0.0-20190613071118-940eccb2f68b
 	github.com/go-playground/locales v0.12.1 // indirect
 	github.com/go-playground/universal-translator v0.16.0 // indirect
 	github.com/json-iterator/go v1.1.6
