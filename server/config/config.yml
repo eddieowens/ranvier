@@ -1,4 +1,4 @@
 compiler:
-  output_directory: ./output
+  outputdirectory: ./output
 server:
   port: 8080

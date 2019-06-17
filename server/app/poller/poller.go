@@ -15,10 +15,12 @@ import (
 
 const GitPollerKey = "GitPoller"
 
-type OnUpdateFunction func(directory string)
+type OnUpdateFunction func(filepath string)
+
+type OnStartFunc OnUpdateFunction
 
 type GitPoller interface {
-	Start(OnUpdate OnUpdateFunction, filters ...regexp.Regexp) error
+	Start(onUpdate OnUpdateFunction, onStart OnStartFunc, filters ...regexp.Regexp) error
 	Stop()
 }
 
@@ -35,7 +37,7 @@ func (g *gitPollerImpl) Stop() {
 	close(g.quitChannel)
 }
 
-func (g *gitPollerImpl) Start(onUpdate OnUpdateFunction, filters ...regexp.Regexp) error {
+func (g *gitPollerImpl) Start(onUpdate OnUpdateFunction, onStart OnStartFunc, filters ...regexp.Regexp) error {
 	repo, err := g.GitService.Clone(g.Config.Git.Remote, g.Config.Git.Branch, g.Config.Git.Directory)
 	if err != nil {
 		return err
@@ -45,7 +47,7 @@ func (g *gitPollerImpl) Start(onUpdate OnUpdateFunction, filters ...regexp.Regex
 	g.branchName = g.Config.Git.Branch
 	g.filters = filters
 
-	err = g.initialUpdate(onUpdate)
+	err = g.initializeConfig(onStart)
 	if err != nil {
 		return err
 	}
@@ -113,13 +115,13 @@ func (g *gitPollerImpl) filter(files []string) []string {
 	return changes
 }
 
-func (g *gitPollerImpl) initialUpdate(onUpdate OnUpdateFunction) error {
+func (g *gitPollerImpl) initializeConfig(onStart OnStartFunc) error {
 	return filepath.Walk(g.Config.Git.Directory, func(path string, _ os.FileInfo, err error) error {
 		if err != nil {
 			return filepath.SkipDir
 		}
 		if g.filterFile(path) {
-			onUpdate(path)
+			onStart(path)
 		}
 		return nil
 	})

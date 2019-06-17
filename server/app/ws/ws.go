@@ -7,6 +7,7 @@ import (
 	"github.com/gorilla/websocket"
 	json "github.com/json-iterator/go"
 	"net/http"
+	"strings"
 )
 
 const WebsocketKey = "Websocket"
@@ -27,6 +28,8 @@ func (w *websocketImpl) Connect(topic string, wr http.ResponseWriter, req *http.
 	}
 
 	defer ws.Close()
+
+	topic = strings.ToLower(topic)
 
 	for c := range w.PubSub.Subscribe(topic) {
 		d, err := json.Marshal(c)

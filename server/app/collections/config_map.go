@@ -12,7 +12,7 @@ type Saver func(config model.Config)
 type GetAllFilter func(name string, config model.Config) bool
 
 type ConfigMap interface {
-	Set(levelConfig model.Config)
+	Set(name string, levelConfig model.Config)
 	Get(name string) (model.Config, bool)
 	GetAll(filter GetAllFilter) []model.Config
 	Delete(name string)
@@ -82,8 +82,8 @@ func (s *configMapImpl) Get(name string) (model.Config, bool) {
 	return val, exists
 }
 
-func (s *configMapImpl) Set(levelConfig model.Config) {
+func (s *configMapImpl) Set(name string, levelConfig model.Config) {
 	s.lock.Lock()
 	defer s.lock.Unlock()
-	s.m[levelConfig.Name] = levelConfig
+	s.m[name] = levelConfig
 }

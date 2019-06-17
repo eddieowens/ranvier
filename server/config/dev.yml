@@ -2,4 +2,4 @@ git:
   directory: ./ranvier-config-example
   remote: git@github.com:eddieowens/ranvier-config-example.git
   branch: master
-  polling_interval: 10
+  pollinginterval: 10

@@ -19,16 +19,16 @@ type websocketControllerImpl struct {
 }
 
 func (w *websocketControllerImpl) Connect(c echo.Context) error {
-	topic := c.Param("topic")
-	if topic == "" {
-		return echo.NewHTTPError(http.StatusNotFound, "topic could not be found")
+	name := c.Param("config_name")
+	if name == "" {
+		return echo.NewHTTPError(http.StatusNotFound, "a config name is required")
 	}
 
-	return w.Websocket.Connect(topic, c.Response(), c.Request(), nil)
+	return w.Websocket.Connect(name, c.Response(), c.Request(), nil)
 }
 
 func (w *websocketControllerImpl) GetRoutes() []model.Route {
 	return []model.Route{
-		model.NewRoute(http.MethodGet, "/config/ws/:topic", false, w.Connect),
+		model.NewRoute(http.MethodGet, "/config/ws/:config_name", false, w.Connect),
 	}
 }

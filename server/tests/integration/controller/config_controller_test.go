@@ -37,7 +37,7 @@ func (s *ConfigControllerTest) TestQuery() {
 		},
 	})
 
-	s.ConfigMap.Set(model.Config{
+	s.ConfigMap.Set("", model.Config{
 		Name: name,
 		Data: map[string]interface{}{"db": "pg"},
 	})
