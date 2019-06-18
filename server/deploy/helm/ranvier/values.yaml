@@ -1,0 +1,21 @@
+container:
+  port: 8080
+  image:
+    name: edwardrowens/ranvier-server
+    tag: latest
+
+resources:
+  limits:
+    cpu: 1
+    memory: 512Mi
+  requests:
+    cpu: 500m
+    memory: 128Mi
+
+svc:
+  type: NodePort
+
+hpa:
+  targetCPUUtilizationPercentage: 70
+  minReplicas: 1
+  maxReplicas: 10

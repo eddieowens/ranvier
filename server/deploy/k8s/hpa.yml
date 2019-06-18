@@ -1,0 +1,11 @@
+apiVersion: autoscaling/v1
+kind: HorizontalPodAutoscaler
+metadata:
+  name: ranvier
+spec:
+  maxReplicas: 20
+  minReplicas: 1
+  targetCPUUtilizationPercentage: 70
+  scaleTargetRef:
+    kind: Deployment
+    name: ranvier

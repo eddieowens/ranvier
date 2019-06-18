@@ -1,0 +1,10 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: raniver
+spec:
+  selector:
+    app: raniver
+  ports:
+    - port: {{.Values.container.port}}
+  type: {{.Values.svc.type}}

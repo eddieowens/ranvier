@@ -1,0 +1,29 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ranvier
+  labels:
+    app: ranvier
+spec:
+  replicas: 1
+  template:
+    metadata:
+      name: ranvier
+      labels:
+        app: ranvier
+    spec:
+      containers:
+        - name: ranvier
+          image: edwardrowens/ranvier-server:latest
+          imagePullPolicy: Always
+          resources:
+            limits:
+              cpu: 1
+              memory: 512Mi
+            requests:
+              cpu: 500m
+              memory: 128Mi
+      restartPolicy: Always
+  selector:
+    matchLabels:
+      app: ranvier

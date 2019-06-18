@@ -1,0 +1,31 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ranvier
+  labels:
+    app: ranvier
+spec:
+  replicas: 1
+  template:
+    metadata:
+      name: ranvier
+      labels:
+        app: ranvier
+    spec:
+      containers:
+        - name: ranvier
+          image: {{.Values.container.image.name}}:{{.Values.container.image.tag}}
+          imagePullPolicy: Always
+          resources:
+            limits:
+              cpu: {{.Values.resources.limits.cpu}}
+              memory: {{.Values.resources.limits.memory}}
+            requests:
+              cpu: {{.Values.resources.requests.cpu}}
+              memory: {{.Values.resources.requests.memory}}
+          ports:
+            - containerPort: {{.Values.container.port}}
+      restartPolicy: Always
+  selector:
+    matchLabels:
+      app: ranvier
