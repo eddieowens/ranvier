@@ -14,7 +14,7 @@ type configWsServiceImpl struct {
 }
 
 func (c *configWsServiceImpl) OnUpdate(filepath string) {
-	err := c.ConfigService.SetFromFile(filepath)
+	err := c.ConfigService.UpdateFromFile(filepath)
 	if err != nil {
 		log.Warn(err)
 	}
