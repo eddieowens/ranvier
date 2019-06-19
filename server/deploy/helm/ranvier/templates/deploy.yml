@@ -25,6 +25,21 @@ spec:
               memory: {{.Values.resources.requests.memory}}
           ports:
             - containerPort: {{.Values.container.port}}
+          env:
+                  {{- if or .Values.ssh_key  (and (eq .Values.username "") (eq .Values.password "") )}}
+                  {{required "Either the ssh_key or username/password values are required" .Values.ssh_key}}
+                  {{- else}}
+                  {{- if .Values.ssh_key}}
+            - name: RANVIER_GIT_SSH_KEY
+              value: {{.Values.ssh_key}}
+                  {{- else}}
+            - name: RANVIER_GIT_USERNAME
+              value: {{.Values.username}}
+            - name: RANVIER_GIT_PASSWORD
+              value: {{.Values.password}}
+                  {{- end}}
+            {{- end}}
+
       restartPolicy: Always
   selector:
     matchLabels:

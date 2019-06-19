@@ -1,3 +1,9 @@
+# Required keys. Either ssh_key needs to be set or username/password need to be. The ssh_key value is a path to the
+# ssh key
+ssh_key: ""
+username: ""
+password: ""
+
 container:
   port: 8080
   image:
