@@ -1,3 +1,6 @@
+{{- if and (not .Values.ssh_key)  (and (not .Values.username) (not .Values.password) )}}
+  {{required "Either the ssh_key or username/password values are required" .Values.ssh_key}}
+{{- end}}
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -26,20 +29,33 @@ spec:
           ports:
             - containerPort: {{.Values.container.port}}
           env:
-                  {{- if or .Values.ssh_key  (and (eq .Values.username "") (eq .Values.password "") )}}
-                  {{required "Either the ssh_key or username/password values are required" .Values.ssh_key}}
-                  {{- else}}
-                  {{- if .Values.ssh_key}}
-            - name: RANVIER_GIT_SSH_KEY
-              value: {{.Values.ssh_key}}
-                  {{- else}}
             - name: RANVIER_GIT_USERNAME
               value: {{.Values.username}}
+            {{- if .Values.ssh_key}}
+            - name: RANVIER_GIT_SSHKEY
+              value: /.ssh/id_rsa
+            {{else}}
             - name: RANVIER_GIT_PASSWORD
-              value: {{.Values.password}}
-                  {{- end}}
-            {{- end}}
-
+              valueFrom:
+                secretKeyRef:
+                  key: password
+                  name: {{.Values.secret.git_access.name}}
+            {{end}}
+          {{- if .Values.ssh_key}}
+          volumeMounts:
+            - mountPath: /
+              name: ssh_key
+          {{end}}
+      {{- if .Values.ssh_key}}
+      volumes:
+        - name: ssh_key
+          secret:
+            secretName: {{.Values.secret.git_access.name}}
+            items:
+              - key: ssh_key
+                path: .ssh
+                mode: 600
+      {{end}}
       restartPolicy: Always
   selector:
     matchLabels:

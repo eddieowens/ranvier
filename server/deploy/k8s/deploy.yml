@@ -23,6 +23,16 @@ spec:
             requests:
               cpu: 500m
               memory: 128Mi
+          ports:
+            - containerPort: 8080
+          env:
+            - name: RANVIER_GIT_USERNAME
+              value: <git username>
+            - name: RANVIER_GIT_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  key: <key here>
+                  name: <secret name here>
       restartPolicy: Always
   selector:
     matchLabels:
