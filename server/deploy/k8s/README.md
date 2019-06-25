@@ -54,20 +54,23 @@ and a value of `/.ssh/id_rsa`.
         secretName: git-access
         items:
           - key: ssh-key
-            path: .ssh
-            mode: 0600
+            path: id_rsa
 ...
 ```
 3\. Create a `volumeMount` for the container
 ```yaml
 ...
   volumeMounts:
-    - mountPath: /
+    - mountPath: /.ssh/id_rsa
+      subPath: id_rsa
       name: ssh-key
+      readOnly: true
 ...
 ```
 
 4\. Create the `Secret` for your node of `Ranvier`
+
+By yaml definition
 ```yaml
 apiVersion: v1
 kind: Secret
@@ -75,7 +78,11 @@ metadata:
   name: git-access
 type: Opaque
 data:
-  ssh_key: <base64 encoded contents of your SSH key here>
+  ssh-key: <base64 encoded contents of your SSH key here>
+```
+Or by `kubectl`
+```bash
+kubectl create secret generic git-access --from-file=ssh-key=~/.ssh/id_rsa
 ```
 
 `Ranvier` will now be authorized to poll your configuration Git repository!

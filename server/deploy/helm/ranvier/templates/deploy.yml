@@ -43,7 +43,8 @@ spec:
             {{end}}
           {{- if .Values.ssh_key}}
           volumeMounts:
-            - mountPath: /.ssh/
+            - mountPath: /.ssh/id_rsa
+              subPath: id_rsa
               name: ssh-key
               readOnly: true
           {{end}}
@@ -52,6 +53,9 @@ spec:
         - name: ssh-key
           secret:
             secretName: {{.Values.secret.git_access.name}}
+            items:
+              - key: ssh-key
+                path: id_rsa
       {{end}}
       restartPolicy: Always
   selector:

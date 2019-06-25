@@ -14,7 +14,7 @@ are provided, the server will fail to start
 
 Run with SSH
 ```bash
-docker run -p 8080:8080 -e RANVIER_GIT_SSHKEY=/.ssh/id_rsa -v ~/.ssh/id_rsa:/.ssh/id_rsa edwardrowens/ranvier
+docker run -p 8080:8080 -e RANVIER_GIT_SSHKEY=/.ssh/id_rsa -v ~/.ssh/id_rsa:/.ssh/id_rsa edwardrowens/ranvier-server
 ```
 
 Run with username/password
