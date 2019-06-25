@@ -25,3 +25,7 @@ hpa:
   targetCPUUtilizationPercentage: 70
   minReplicas: 1
   maxReplicas: 10
+
+secret:
+  git_access:
+    name: git-access

@@ -43,18 +43,15 @@ spec:
             {{end}}
           {{- if .Values.ssh_key}}
           volumeMounts:
-            - mountPath: /
-              name: ssh_key
+            - mountPath: /.ssh/
+              name: ssh-key
+              readOnly: true
           {{end}}
       {{- if .Values.ssh_key}}
       volumes:
-        - name: ssh_key
+        - name: ssh-key
           secret:
             secretName: {{.Values.secret.git_access.name}}
-            items:
-              - key: ssh_key
-                path: .ssh
-                mode: 600
       {{end}}
       restartPolicy: Always
   selector:
