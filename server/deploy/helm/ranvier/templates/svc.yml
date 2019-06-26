@@ -4,7 +4,7 @@ metadata:
   name: raniver
 spec:
   selector:
-    app: raniver
+    app: ranvier
   ports:
     - port: {{.Values.container.port}}
   type: {{.Values.svc.type}}
