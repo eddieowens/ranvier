@@ -18,15 +18,10 @@ type routerImpl struct {
 
 func (r *routerImpl) RegisterAll(e *echo.Echo) {
 	api := e.Group("/api")
-	admin := api.Group("/admin")
 	for _, inst := range r.Controllers {
-		c := inst.GetValue().(controller.Controller)
+		c := inst.GetStructPtr().(controller.Controller)
 		for _, route := range c.GetRoutes() {
-			if route.IsAdmin {
-				admin.Add(route.Method, route.Path, route.HandlerFunc)
-			} else {
-				api.Add(route.Method, route.Path, route.HandlerFunc)
-			}
+			api.Add(route.Method, route.Path, route.HandlerFunc)
 		}
 	}
 }

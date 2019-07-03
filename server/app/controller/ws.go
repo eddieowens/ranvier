@@ -29,6 +29,6 @@ func (w *websocketControllerImpl) Connect(c echo.Context) error {
 
 func (w *websocketControllerImpl) GetRoutes() []model.Route {
 	return []model.Route{
-		model.NewRoute(http.MethodGet, "/config/ws/:config_name", false, w.Connect),
+		model.NewRoute(http.MethodGet, "/config/ws/:config_name", w.Connect),
 	}
 }

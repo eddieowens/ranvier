@@ -24,6 +24,8 @@ COPY --from=builder /.ssh/known_hosts /.ssh/known_hosts
 
 ENV SSH_KNOWN_HOSTS=/.ssh/known_hosts
 
+EXPOSE 8080
+
 WORKDIR /app
 
 CMD ["./main"]

@@ -30,6 +30,7 @@ func (w *websocketImpl) Connect(topic string, wr http.ResponseWriter, req *http.
 	defer ws.Close()
 
 	topic = strings.ToLower(topic)
+	fmt.Println("subscribing!")
 
 	for c := range w.PubSub.Subscribe(topic) {
 		d, err := json.Marshal(c)
@@ -44,6 +45,7 @@ func (w *websocketImpl) Connect(topic string, wr http.ResponseWriter, req *http.
 			continue
 		}
 	}
+	fmt.Println("closing!")
 
 	return nil
 }

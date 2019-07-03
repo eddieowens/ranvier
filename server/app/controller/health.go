@@ -24,6 +24,6 @@ func (h *healthCheckControllerImpl) GetHealth(c echo.Context) error {
 
 func (h *healthCheckControllerImpl) GetRoutes() []model.Route {
 	return []model.Route{
-		model.NewRoute(http.MethodGet, GetHealthRoute, false, h.GetHealth),
+		model.NewRoute(http.MethodGet, GetHealthRoute, h.GetHealth),
 	}
 }

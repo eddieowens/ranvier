@@ -10,7 +10,7 @@ const MappingServiceKey = "MappingService"
 type MappingService interface {
 	ToLevelConfigMeta(config *model.Config) response.ConfigMeta
 	ToLevelConfigMetaData(config *model.Config) *response.ConfigMetaData
-	ToConfig(config *model.Config) response.Config
+	ToResponse(config *model.Config) *response.Config
 	ToLevelConfigData(config *model.Config) *response.ConfigData
 }
 
@@ -37,13 +37,11 @@ func (m *mappingServiceImpl) ToLevelConfigMetaData(config *model.Config) *respon
 	}
 }
 
-func (m *mappingServiceImpl) ToConfig(config *model.Config) response.Config {
+func (m *mappingServiceImpl) ToResponse(config *model.Config) *response.Config {
 	if config == nil {
-		return response.Config{
-			Data: nil,
-		}
+		return nil
 	}
-	return response.Config{
+	return &response.Config{
 		Data: m.ToLevelConfigData(config),
 	}
 }
