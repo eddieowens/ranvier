@@ -1,6 +1,7 @@
 package ranvier
 
 import (
+	"bytes"
 	"encoding/json"
 	"fmt"
 	"github.com/eddieowens/ranvier/server/app/collections"
@@ -8,58 +9,200 @@ import (
 	"github.com/eddieowens/ranvier/server/app/model"
 	"github.com/gorilla/websocket"
 	"github.com/oliveagle/jsonpath"
+	"github.com/pkg/errors"
 	"io/ioutil"
+	"net"
 	"net/http"
+	"net/url"
 	"os"
 	"path"
 )
 
 type ClientOptions struct {
-	Url             string
+	// The required hostname to your Ranvier server(s). Should not include the protocol, e.g. if Ranvier is pointed at the
+	// url https://ranvier.mycompany.com, this hostname should strictly be ranvier.mycompany.com. Or if it's
+	// https://ranvier:8080, this field should be set to ranvier:8080.
+	Hostname string
+
+	// The directory that your local config files will be stored. This directory will default to a temp directory if not
+	// provided.
 	ConfigDirectory string
 }
 
 type ConnOptions struct {
+	// The names of the configuration files that you want updates for. Whenever the configuration tied to this name is
+	// updated, the Connection will receive a message of the new configuration.
 	Names []string
 }
 
 type Connection struct {
+	// The channel for all incoming configuration changes. Listen for messages on this channel to get realtime updates on
+	// configuration changes.
 	OnUpdate chan model.Config
-	closer   chan bool
+
+	closer chan bool
 }
 
-func NewClient(options *ClientOptions) Client {
-	url := options.Url
-	if string(url[len(url)-1]) == "/" {
-		options.Url = url[:len(url)-1]
+// Create a new Ranvier client with the provided options. It is advised to only use a single client as all queries made
+// by the client are cached.
+func NewClient(options *ClientOptions) (Client, error) {
+	_, _, err := net.SplitHostPort(options.Hostname)
+	if err != nil {
+		return nil, err
 	}
+	hostname := options.Hostname
 
 	confDir := options.ConfigDirectory
 	if confDir == "" {
-		options.ConfigDirectory = path.Join(os.TempDir(), "ranvier", options.Url)
+		options.ConfigDirectory = path.Join(os.TempDir(), "ranvier", options.Hostname)
 	}
-	err := os.MkdirAll(options.ConfigDirectory, os.ModePerm)
+	err = os.MkdirAll(options.ConfigDirectory, os.ModePerm)
 	if err != nil {
-		panic(err)
+		return nil, err
 	}
 
 	c := &clientImpl{
-		Options:   options,
+		Options: &ClientOptions{
+			Hostname:        hostname,
+			ConfigDirectory: confDir,
+		},
 		ConfigMap: collections.NewConfigMap(),
 	}
 
-	return c
+	return c, nil
+}
+
+type QueryOptions struct {
+	IgnoreCache bool
+	Name        string
+	Query       string
 }
 
 type Client interface {
+	// Establish a connection between the client and the Ranvier server. Whenever the Ranvier server detects changes to
+	// the configuration you care about, it will notify your client and update its state. If the connection could not be
+	// made, an error is returned
 	Connect(options *ConnOptions) (*Connection, error)
+
+	// Sever the connection between the client and the Ranvier server. The client will no longer receive updates from the
+	// Ranvier server after the connection is disconnected.
 	Disconnect(conn *Connection)
-	Query(name string, query string) (*model.Config, error)
+
+	// Query Ranvier for some config. The query is a valid jsonpath query (https://restfulapi.net/json-jsonpath/). If the
+	// query is unable to find any config, nil is returned. If the query is invalid, an error is returned.
+	//
+	// All queries are cached within the client and will be hit unless specified in the options. The order of operations
+	// for retrieving a query are
+	//   client cache -> Ranvier server -> local disk
+	// If the query is unsuccessful in all of these operations, nil is returned.
+	//
+	// All successful queries will be written to disk.
+	Query(options *QueryOptions) (*model.Config, error)
+
+	Create(config *model.Config) (*model.Config, error)
+
+	Delete(name string) (*model.Config, error)
+
+	Update(config *model.Config) (*model.Config, error)
 }
 
 type clientImpl struct {
 	Options   *ClientOptions
 	ConfigMap collections.ConfigMap
+}
+
+func (c *clientImpl) Create(config *model.Config) (*model.Config, error) {
+	if config == nil {
+		return nil, nil
+	}
+
+	d, err := json.Marshal(config)
+	if err != nil {
+		return nil, err
+	}
+	resp, err := http.Post(c.Options.Hostname, "application/json", bytes.NewBuffer(d))
+	if err != nil {
+		return nil, err
+	}
+
+	d, err = ioutil.ReadAll(resp.Body)
+	if err != nil {
+		return nil, err
+	}
+
+	var conf response.Config
+	err = json.Unmarshal(d, &conf)
+	if err != nil {
+		return nil, err
+	}
+
+	return conf.Data, nil
+}
+
+func (c *clientImpl) Delete(name string) (*model.Config, error) {
+	parsedUrl, _ := url.Parse(c.Options.Hostname)
+	parsedUrl.Scheme = "http"
+	parsedUrl.Path = "api/config/" + name
+	req, err := http.NewRequest(http.MethodDelete, parsedUrl.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+	req.Header.Set("Content-Type", "application/json")
+	resp, err := (&http.Client{}).Do(req)
+	if err != nil {
+		return nil, err
+	}
+
+	d, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		return nil, err
+	}
+
+	var respConf response.Config
+	err = json.Unmarshal(d, &respConf)
+	if err != nil {
+		return nil, err
+	}
+
+	return respConf.Data, nil
+}
+
+func (c *clientImpl) Update(config *model.Config) (*model.Config, error) {
+	if config == nil {
+		return nil, nil
+	}
+
+	parsedUrl, _ := url.Parse(c.Options.Hostname)
+	parsedUrl.Scheme = "http"
+	parsedUrl.Path = "api/config/" + config.Name
+
+	d, err := json.Marshal(config)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest(http.MethodPut, parsedUrl.String(), bytes.NewBuffer(d))
+	if err != nil {
+		return nil, err
+	}
+	req.Header.Set("Content-Type", "application/json")
+	resp, err := (&http.Client{}).Do(req)
+	if err != nil {
+		return nil, err
+	}
+
+	d, err = ioutil.ReadAll(resp.Body)
+	if err != nil {
+		return nil, err
+	}
+
+	var respConf response.Config
+	err = json.Unmarshal(d, &respConf)
+	if err != nil {
+		return nil, err
+	}
+
+	return respConf.Data, nil
 }
 
 func (c *clientImpl) Disconnect(conn *Connection) {
@@ -70,9 +213,12 @@ func (c *clientImpl) Disconnect(conn *Connection) {
 func (c *clientImpl) Connect(options *ConnOptions) (*Connection, error) {
 	configChan := make(chan model.Config, 0)
 	closer := make(chan bool, 0)
-	url := c.Options.Url + "/api/config/ws/%s"
+	parsedUrl := &url.URL{}
+	parsedUrl.Host = c.Options.Hostname
+	parsedUrl.Scheme = "ws"
 	for _, n := range options.Names {
-		ws, _, err := websocket.DefaultDialer.Dial(fmt.Sprintf(url, n), nil)
+		parsedUrl.Path = fmt.Sprintf("/api/config/ws/%s", n)
+		ws, _, err := websocket.DefaultDialer.Dial(parsedUrl.String(), nil)
 		if err != nil {
 			return nil, err
 		}
@@ -81,16 +227,23 @@ func (c *clientImpl) Connect(options *ConnOptions) (*Connection, error) {
 			for {
 				select {
 				case <-closer:
+					ws.Close()
 					return
 				default:
 					var conf model.Config
-					err := ws.ReadJSON(&conf)
+					_, msg, err := ws.ReadMessage()
+					if err != nil {
+						fmt.Println("err", err)
+					} else {
+						fmt.Println(string(msg))
+					}
+					err = ws.ReadJSON(&conf)
 					if err != nil {
 						continue
 					}
 
 					_ = c.writeToDisk(&conf)
-					c.ConfigMap.Set(conf)
+					c.ConfigMap.Set(conf.Name, conf)
 					configChan <- conf
 				}
 			}
@@ -105,12 +258,15 @@ func (c *clientImpl) Connect(options *ConnOptions) (*Connection, error) {
 	return &conn, nil
 }
 
-func (c *clientImpl) Query(name string, query string) (*model.Config, error) {
-	conf, err := c.fetchAndLoadConfig(name)
+func (c *clientImpl) Query(options *QueryOptions) (*model.Config, error) {
+	if options == nil {
+		return nil, errors.New("options are required to run a query")
+	}
+	conf, err := c.fetchAndLoadConfig(options.Name, options.IgnoreCache)
 	if err != nil {
 		return nil, err
 	}
-	conf, err = c.query(conf, query)
+	conf, err = c.query(conf, options.Query)
 	if err != nil {
 		return nil, err
 	}
@@ -119,7 +275,7 @@ func (c *clientImpl) Query(name string, query string) (*model.Config, error) {
 }
 
 func (c *clientImpl) toUrl(name string, query string) string {
-	return fmt.Sprintf("%s/api/config/%s?query%s", c.Options.Url, name, query)
+	return fmt.Sprintf("%s/api/config/%s?query%s", c.Options.Hostname, name, query)
 }
 
 func (c *clientImpl) query(config *model.Config, query string) (*model.Config, error) {
@@ -134,24 +290,29 @@ func (c *clientImpl) query(config *model.Config, query string) (*model.Config, e
 	}, nil
 }
 
-func (c *clientImpl) fetchAndLoadConfig(name string) (*model.Config, error) {
-	conf, exists := c.ConfigMap.Get(name)
+func (c *clientImpl) fetchAndLoadConfig(name string, ignoreCache bool) (*model.Config, error) {
+	var exists bool
+	var conf model.Config
+	if !ignoreCache {
+		conf, exists = c.ConfigMap.Get(name)
+	}
 	if !exists {
-		conf, err := c.fetchConfig(name, "")
+		fetchedCfg, err := c.fetchConfig(name, "")
 		if err != nil {
-			conf, err = c.loadFromDisk(name)
+			fetchedCfg, err = c.loadFromDisk(name)
 			if err != nil {
 				return nil, err
 			}
 		} else {
-			err := c.writeToDisk(conf)
+			err = c.writeToDisk(fetchedCfg)
 			if err != nil {
 				return nil, err
 			}
 		}
+		conf = *fetchedCfg
 	}
 
-	c.ConfigMap.Set(conf)
+	c.ConfigMap.Set(conf.Name, conf)
 
 	return &conf, nil
 }
@@ -173,10 +334,7 @@ func (c *clientImpl) fetchConfig(name string, query string) (*model.Config, erro
 		return nil, err
 	}
 
-	return &model.Config{
-		Name: conf.Data.Name,
-		Data: conf.Data.Config,
-	}, nil
+	return conf.Data, nil
 }
 
 func (c *clientImpl) loadFromDisk(name string) (*model.Config, error) {
