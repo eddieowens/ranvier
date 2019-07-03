@@ -1,7 +1,9 @@
 package response
 
+import "github.com/eddieowens/ranvier/server/app/model"
+
 type Config struct {
-	Data *ConfigData `json:"data"`
+	Data *model.Config `json:"data"`
 }
 
 type ConfigData struct {
