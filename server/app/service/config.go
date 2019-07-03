@@ -19,6 +19,8 @@ const ConfigServiceKey = "ConfigService"
 type ConfigService interface {
 	SetFromFile(filepath string) error
 	UpdateFromFile(filepath string) error
+	Delete(name string) *model.Config
+	Set(config *model.Config) *model.Config
 	Query(name string, query string) (*model.Config, error)
 }
 
@@ -27,6 +29,32 @@ type configServiceImpl struct {
 	PubSub    pubsub.PubSub         `inject:"PubSub"`
 	Compiler  compiler.Compiler     `inject:"Compiler"`
 	Config    configuration.Config  `inject:"Config"`
+}
+
+func (c *configServiceImpl) Set(config *model.Config) *model.Config {
+	name := strings.ToLower(config.Name)
+	_ = c.ConfigMap.WithLockWindow(name, func(_ model.Config, exists bool, saver collections.Saver) error {
+		if !exists {
+			saver(*config)
+			c.PubSub.Publish(config.Name, config)
+		}
+		return nil
+	})
+	return config
+}
+
+func (c *configServiceImpl) Delete(name string) *model.Config {
+	var conf *model.Config
+	_ = c.ConfigMap.WithLock(func(configs map[string]model.Config) error {
+		cfg, exists := configs[name]
+		if exists {
+			delete(configs, name)
+			conf = &cfg
+			c.PubSub.Publish(strings.ToLower(name), conf)
+		}
+		return nil
+	})
+	return conf
 }
 
 func (c *configServiceImpl) UpdateFromFile(filepath string) error {

@@ -1,13 +1,19 @@
 package service
 
 import (
+	"fmt"
 	"github.com/eddieowens/ranvier/server/app/exchange/response"
+	"github.com/eddieowens/ranvier/server/app/model"
+	"github.com/labstack/echo"
 )
 
 const ConfigControllerServiceKey = "ConfigControllerService"
 
 type ConfigControllerService interface {
-	Query(name string, query string) (resp response.Config, err error)
+	Query(name string, query string) (*response.Config, error)
+	Delete(name string) (*response.Config, error)
+	Create(conf *model.Config) (*response.Config, error)
+	Update(config *model.Config) (*response.Config, error)
 }
 
 type configControllerServiceImpl struct {
@@ -15,11 +21,34 @@ type configControllerServiceImpl struct {
 	ConfigService  ConfigService  `inject:"ConfigService"`
 }
 
-func (g *configControllerServiceImpl) Query(name string, query string) (resp response.Config, err error) {
-	config, err := g.ConfigService.Query(name, query)
-	if err != nil {
-		return resp, err
+func (c *configControllerServiceImpl) Delete(name string) (*response.Config, error) {
+	conf := c.ConfigService.Delete(name)
+	if conf == nil {
+		return nil, echo.NewHTTPError(400, fmt.Sprintf("%s could not be found", name))
 	}
 
-	return g.MappingService.ToConfig(config), nil
+	return c.MappingService.ToResponse(conf), nil
+}
+
+func (c *configControllerServiceImpl) Create(config *model.Config) (*response.Config, error) {
+	conf := c.ConfigService.Set(config)
+	if conf != nil {
+		return nil, echo.NewHTTPError(400, fmt.Sprintf("%s already exists", config.Name))
+	}
+
+	return c.MappingService.ToResponse(conf), nil
+}
+
+func (c *configControllerServiceImpl) Update(config *model.Config) (*response.Config, error) {
+	conf := c.ConfigService.Set(config)
+	return c.MappingService.ToResponse(conf), nil
+}
+
+func (c *configControllerServiceImpl) Query(name string, query string) (*response.Config, error) {
+	config, err := c.ConfigService.Query(name, query)
+	if err != nil {
+		return nil, err
+	}
+
+	return c.MappingService.ToResponse(config), nil
 }
