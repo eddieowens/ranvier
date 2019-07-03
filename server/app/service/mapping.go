@@ -11,21 +11,9 @@ type MappingService interface {
 	ToLevelConfigMeta(config *model.Config) response.ConfigMeta
 	ToLevelConfigMetaData(config *model.Config) *response.ConfigMetaData
 	ToResponse(config *model.Config) *response.Config
-	ToLevelConfigData(config *model.Config) *response.ConfigData
 }
 
 type mappingServiceImpl struct {
-}
-
-func (m *mappingServiceImpl) ToLevelConfigData(config *model.Config) *response.ConfigData {
-	if config == nil {
-		return nil
-	}
-
-	return &response.ConfigData{
-		Name:   config.Name,
-		Config: config.Data,
-	}
 }
 
 func (m *mappingServiceImpl) ToLevelConfigMetaData(config *model.Config) *response.ConfigMetaData {
@@ -42,7 +30,7 @@ func (m *mappingServiceImpl) ToResponse(config *model.Config) *response.Config {
 		return nil
 	}
 	return &response.Config{
-		Data: m.ToLevelConfigData(config),
+		Data: config,
 	}
 }
 
