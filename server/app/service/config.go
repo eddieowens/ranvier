@@ -33,11 +33,9 @@ type configServiceImpl struct {
 
 func (c *configServiceImpl) Set(config *model.Config) *model.Config {
 	name := strings.ToLower(config.Name)
-	_ = c.ConfigMap.WithLockWindow(name, func(_ model.Config, exists bool, saver collections.Saver) error {
-		if !exists {
-			saver(*config)
-			c.PubSub.Publish(config.Name, config)
-		}
+	_ = c.ConfigMap.WithLockWindow(name, func(_ model.Config, _ bool, saver collections.Saver) error {
+		saver(*config)
+		c.PubSub.Publish(config.Name, config)
 		return nil
 	})
 	return config
