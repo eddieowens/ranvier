@@ -5,7 +5,6 @@ import (
 	"github.com/eddieowens/axon"
 	"github.com/eddieowens/ranvier/server/app/pubsub"
 	"github.com/gorilla/websocket"
-	json "github.com/json-iterator/go"
 	"net/http"
 	"strings"
 )
@@ -30,22 +29,14 @@ func (w *websocketImpl) Connect(topic string, wr http.ResponseWriter, req *http.
 	defer ws.Close()
 
 	topic = strings.ToLower(topic)
-	fmt.Println("subscribing!")
 
 	for c := range w.PubSub.Subscribe(topic) {
-		d, err := json.Marshal(c)
-		if err != nil {
-			fmt.Println(err)
-			continue
-		}
-
-		err = ws.WriteMessage(websocket.TextMessage, d)
+		err = ws.WriteJSON(c)
 		if err != nil {
 			fmt.Println(err)
 			continue
 		}
 	}
-	fmt.Println("closing!")
 
 	return nil
 }
