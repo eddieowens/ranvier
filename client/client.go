@@ -16,6 +16,7 @@ import (
 	"net/url"
 	"os"
 	"path"
+	"time"
 )
 
 type ClientOptions struct {
@@ -24,8 +25,8 @@ type ClientOptions struct {
 	// https://ranvier:8080, this field should be set to ranvier:8080.
 	Hostname string
 
-	// The directory that your local config files will be stored. This directory will default to a temp directory if not
-	// provided.
+	// The directory that your local config files will be stored on disk. Config is stored on disk to prevent a strong
+	// reliance on the server. This directory will default to a temp directory.
 	ConfigDirectory string
 }
 
@@ -33,6 +34,9 @@ type ConnOptions struct {
 	// The names of the configuration files that you want updates for. Whenever the configuration tied to this name is
 	// updated, the Connection will receive a message of the new configuration.
 	Names []string
+
+	// If the websocket were to disconnect, how long until a retry is attempted? Default is 30 seconds.
+	RetryInterval time.Duration
 }
 
 type Connection struct {
@@ -79,9 +83,9 @@ type QueryOptions struct {
 }
 
 type Client interface {
-	// Establish a connection between the client and the Ranvier server. Whenever the Ranvier server detects changes to
-	// the configuration you care about, it will notify your client and update its state. If the connection could not be
-	// made, an error is returned
+	// Establish a websocket connection between the client and the Ranvier server. Whenever the Ranvier server detects
+	// changes to the configuration you care about (specified in the options), it will notify your client and update its
+	// state. If the connection could not be made, an error is returned.
 	Connect(options *ConnOptions) (*Connection, error)
 
 	// Sever the connection between the client and the Ranvier server. The client will no longer receive updates from the
@@ -98,12 +102,6 @@ type Client interface {
 	//
 	// All successful queries will be written to disk.
 	Query(options *QueryOptions) (*model.Config, error)
-
-	Create(config *model.Config) (*model.Config, error)
-
-	Delete(name string) (*model.Config, error)
-
-	Update(config *model.Config) (*model.Config, error)
 }
 
 type clientImpl struct {
@@ -111,6 +109,9 @@ type clientImpl struct {
 	ConfigMap collections.ConfigMap
 }
 
+// Only available when the Ranvier server is in Dev mode!
+//
+// Create a new Config in the Ranvier server. This will cause a websocket event to be emitted.
 func (c *clientImpl) Create(config *model.Config) (*model.Config, error) {
 	if config == nil {
 		return nil, nil
@@ -139,6 +140,9 @@ func (c *clientImpl) Create(config *model.Config) (*model.Config, error) {
 	return conf.Data, nil
 }
 
+// Only available when the Ranvier server is in Dev mode!
+//
+// Deletes a Config object from the Ranvier server. This will cause a websocket event to be emitted.
 func (c *clientImpl) Delete(name string) (*model.Config, error) {
 	parsedUrl, _ := url.Parse(c.Options.Hostname)
 	parsedUrl.Scheme = "http"
@@ -167,16 +171,22 @@ func (c *clientImpl) Delete(name string) (*model.Config, error) {
 	return respConf.Data, nil
 }
 
+// Only available when the Ranvier server is in Dev mode!
+//
+// Updates a pre-existing Config object. If the Config did not previously exist, a new one is created under the
+// specified name.
 func (c *clientImpl) Update(config *model.Config) (*model.Config, error) {
 	if config == nil {
 		return nil, nil
 	}
 
-	parsedUrl, _ := url.Parse(c.Options.Hostname)
-	parsedUrl.Scheme = "http"
-	parsedUrl.Path = "api/config/" + config.Name
+	parsedUrl := &url.URL{
+		Scheme: "http",
+		Host:   c.Options.Hostname,
+		Path:   "api/config/" + config.Name,
+	}
 
-	d, err := json.Marshal(config)
+	d, err := json.Marshal(config.Data)
 	if err != nil {
 		return nil, err
 	}
@@ -212,10 +222,16 @@ func (c *clientImpl) Disconnect(conn *Connection) {
 
 func (c *clientImpl) Connect(options *ConnOptions) (*Connection, error) {
 	configChan := make(chan model.Config, 0)
-	closer := make(chan bool, 0)
-	parsedUrl := &url.URL{}
-	parsedUrl.Host = c.Options.Hostname
-	parsedUrl.Scheme = "ws"
+	closer := make(chan bool, 1)
+	parsedUrl := &url.URL{
+		Host:   c.Options.Hostname,
+		Scheme: "ws",
+	}
+	retryInterval := options.RetryInterval
+	if retryInterval == 0 {
+		retryInterval = time.Second * 30
+	}
+
 	for _, n := range options.Names {
 		parsedUrl.Path = fmt.Sprintf("/api/config/ws/%s", n)
 		ws, _, err := websocket.DefaultDialer.Dial(parsedUrl.String(), nil)
@@ -225,27 +241,23 @@ func (c *clientImpl) Connect(options *ConnOptions) (*Connection, error) {
 
 		go func(ws *websocket.Conn, closer chan bool, configChan chan model.Config) {
 			for {
-				select {
-				case <-closer:
+				if len(closer) > 0 {
 					ws.Close()
 					return
-				default:
-					var conf model.Config
-					_, msg, err := ws.ReadMessage()
-					if err != nil {
-						fmt.Println("err", err)
-					} else {
-						fmt.Println(string(msg))
-					}
-					err = ws.ReadJSON(&conf)
-					if err != nil {
-						continue
-					}
-
-					_ = c.writeToDisk(&conf)
-					c.ConfigMap.Set(conf.Name, conf)
-					configChan <- conf
 				}
+				var conf model.Config
+				err = ws.ReadJSON(&conf)
+				if err != nil {
+					if _, ok := err.(*websocket.CloseError); ok {
+						time.Sleep(retryInterval)
+						ws, _, err = websocket.DefaultDialer.Dial(parsedUrl.String(), nil)
+					}
+					continue
+				}
+
+				_ = c.writeToDisk(&conf)
+				c.ConfigMap.Set(conf.Name, conf)
+				configChan <- conf
 			}
 		}(ws, closer, configChan)
 	}

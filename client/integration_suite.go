@@ -37,7 +37,7 @@ func (i *IntegrationSuite) SetupSuite() {
 	}
 
 	i.Resource, err = i.Pool.RunWithOptions(&dockertest.RunOptions{
-		Repository: "ranvier",
+		Repository: "edwardrowens/ranvier-server",
 		Tag:        "latest",
 		Env:        []string{"RANVIER_GIT_SSHKEY=/.ssh/id_rsa"},
 		Mounts:     []string{fmt.Sprintf("%s:/.ssh/id_rsa", path.Join(home, ".ssh", "id_rsa"))},
