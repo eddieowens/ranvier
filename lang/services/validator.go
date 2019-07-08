@@ -1,16 +1,21 @@
 package services
 
 import (
+	"context"
 	"github.com/eddieowens/axon"
 	"github.com/eddieowens/ranvier/commons"
 	"github.com/eddieowens/ranvier/lang/domain"
 	"gopkg.in/go-playground/validator.v9"
+	"regexp"
 )
 
 const ValidatorKey = "Validator"
 
+var dns1123Regexp = regexp.MustCompile("[a-z0-9]([-a-z0-9]*[a-z0-9])?")
+
 type Validator interface {
-	Validate(manifest *domain.Schema) error
+	Schema(manifest *domain.Schema) error
+	Struct(strct interface{}) error
 }
 
 type validatorImpl struct {
@@ -19,7 +24,11 @@ type validatorImpl struct {
 	Filer      commons.Filer `inject:"Filer"`
 }
 
-func (v *validatorImpl) Validate(manifest *domain.Schema) error {
+func (v *validatorImpl) Struct(strct interface{}) error {
+	return v.validator.Struct(strct)
+}
+
+func (v *validatorImpl) Schema(manifest *domain.Schema) error {
 	err := v.validator.Struct(*manifest)
 	if err != nil {
 		return NewSchemaValidationError(err.(validator.ValidationErrors), manifest.Path)
@@ -38,6 +47,17 @@ func validatorFactory(inj axon.Injector, _ axon.Args) axon.Instance {
 
 	filter := inj.GetStructPtr(FileFilterKey).(FileFilter)
 	err = v.RegisterValidation("ext", extValidator(filter))
+	if err != nil {
+		panic(err)
+	}
+
+	err = v.RegisterValidationCtx("dns_1123", func(ctx context.Context, fl validator.FieldLevel) bool {
+		val := fl.Field()
+		if dnsName, ok := val.Interface().(string); ok {
+			return dns1123Regexp.MatchString(dnsName)
+		}
+		return false
+	})
 	if err != nil {
 		panic(err)
 	}

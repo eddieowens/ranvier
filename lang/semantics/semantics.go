@@ -16,5 +16,5 @@ type analyzer struct {
 }
 
 func (s *analyzer) Semantics(manifest *domain.Schema) error {
-	return s.Validator.Validate(manifest)
+	return s.Validator.Schema(manifest)
 }

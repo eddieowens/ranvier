@@ -2,28 +2,28 @@ package compiler
 
 import "strings"
 
-type PackError struct {
+type SchemaPackError struct {
 	errors       []error
 	errorStrings []string
 }
 
-func NewPackError(errs ...error) *PackError {
-	p := &PackError{}
+func NewSchemaPackError(errs ...error) *SchemaPackError {
+	p := &SchemaPackError{}
 	for _, e := range errs {
 		p.AddError(e)
 	}
 	return p
 }
 
-func (p *PackError) Errors() []error {
+func (p *SchemaPackError) Errors() []error {
 	return p.errors
 }
 
-func (p *PackError) AddError(e error) {
+func (p *SchemaPackError) AddError(e error) {
 	p.errors = append(p.errors, e)
 	p.errorStrings = append(p.errorStrings, e.Error())
 }
 
-func (p *PackError) Error() string {
+func (p *SchemaPackError) Error() string {
 	return strings.Join(p.errorStrings, "\n")
 }

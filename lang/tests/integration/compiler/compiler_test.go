@@ -30,39 +30,38 @@ type TestConfig struct {
 }
 
 func (c *CompilerTest) SetupTest() {
-	c.comp = c.Injector.GetStructPtr(compiler.CompilerKey).(compiler.Compiler)
+	c.comp = c.Injector.GetStructPtr(compiler.Key).(compiler.Compiler)
 }
 
 func (c *CompilerTest) TestCompileAll() {
 	// -- Given
 	//
 	outputDir := path.Join(c.Resources(), "output")
-	opts := &compiler.CompileAllOptions{
+	_ = os.MkdirAll(outputDir, os.ModePerm)
+	defer os.RemoveAll(outputDir)
+	fp := path.Join(c.Resources(), "integration-valid")
+	opts := compiler.CompileAllOptions{
 		CompileOptions: compiler.CompileOptions{
-			DryRun:          false,
 			OutputDirectory: outputDir,
+			DryRun:          false,
 		},
 		Force: false,
 	}
 
-	defer os.RemoveAll(outputDir)
-
-	fp := path.Join(c.Resources(), "integration-valid")
-
 	expectedConfig := map[string]TestConfig{
-		"ProdUsers": {
+		"users-prod": {
 			Db: TestConfigDb{
 				Url:  "username@pg.mycompany.com:5432",
 				Pool: 20,
 			},
 		},
-		"StagingUsers": {
+		"users-staging": {
 			Db: TestConfigDb{
 				Pool: 5,
 				Url:  "username@pg.staging.mycompany.com:5432",
 			},
 		},
-		"Users": {
+		"users-users": {
 			Db: TestConfigDb{
 				Pool: 3,
 			},
@@ -70,20 +69,20 @@ func (c *CompilerTest) TestCompileAll() {
 	}
 
 	expected := map[string]domain.Schema{
-		"ProdUsers": {
-			Name:    "ProdUsers",
+		"users-prod": {
+			Name:    "users-prod",
 			Extends: []string{path.Join(fp, "prod.json")},
-			Path:    path.Join(fp, "users", "prod-users.json"),
+			Path:    path.Join(fp, "users", "prod.json"),
 			Type:    "json",
 		},
-		"StagingUsers": {
-			Name:    "StagingUsers",
-			Extends: []string{path.Join(fp, "/staging.json")},
-			Path:    path.Join(fp, "users", "staging-users.json"),
+		"users-staging": {
+			Name:    "users-staging",
+			Extends: []string{path.Join(fp, "staging.json")},
+			Path:    path.Join(fp, "users", "staging.json"),
 			Type:    "yaml",
 		},
-		"Users": {
-			Name: "Users",
+		"users-users": {
+			Name: "users-users",
 			Path: path.Join(fp, "users", "users.json"),
 			Type: "toml",
 		},
@@ -110,6 +109,57 @@ func (c *CompilerTest) TestCompileAll() {
 			c.EqualConfigFromFile(path.Join(outputDir, fmt.Sprintf("%s.%s", v.Name, v.Type)), expectedConfig[k])
 		}
 	}
+}
+
+func (c *CompilerTest) TestParse() {
+	// -- Given
+	//
+	fp := path.Join(c.Resources(), "integration-valid")
+
+	d, err := json.Marshal(TestConfig{
+		Db: TestConfigDb{
+			Pool: 3,
+		},
+	})
+
+	if !c.NoError(err) {
+		c.FailNow(err.Error())
+	}
+
+	expected := domain.Schema{
+		Name:   "users-users",
+		Path:   path.Join(fp, "users", "users.json"),
+		Type:   "toml",
+		Config: d,
+	}
+
+	// -- When
+	//
+	actual, err := c.comp.Parse("users/users.json", compiler.ParseOptions{
+		Root: fp,
+	})
+
+	// -- Then
+	//
+	if c.NoError(err) {
+		c.EqualSchemas(expected, *actual)
+	}
+}
+
+func (c *CompilerTest) EqualSchemas(expected, actual domain.Schema) bool {
+	var expConfig, actConfig interface{}
+	err := json.Unmarshal(expected.Config, &expConfig)
+	if c.NoError(err) {
+		err = json.Unmarshal(actual.Config, &actConfig)
+		if c.NoError(err) {
+			if c.Equal(expConfig, actConfig) {
+				expected.Config = nil
+				actual.Config = nil
+				return c.Equal(expected, actual)
+			}
+		}
+	}
+	return false
 }
 
 func (c *CompilerTest) EqualConfigFromFile(file string, expected TestConfig) {

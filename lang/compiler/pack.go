@@ -6,35 +6,32 @@ import (
 	"github.com/eddieowens/ranvier/lang/domain"
 )
 
-const PackerKey = "Packer"
+const SchemaPackerKey = "SchemaPacker"
 
-type Pack interface {
+type SchemaPack interface {
 	Schemas() map[string]domain.Schema
 	Path() string
 }
 
-type Packer interface {
-	AddSchema(pack Pack, schema *domain.Schema) error
+type SchemaPacker interface {
+	AddSchema(pack SchemaPack, schema *domain.Schema) error
 }
 
-type packImpl struct {
+type schemaPackImpl struct {
 	schemas map[string]domain.Schema
 	path    string
 }
 
-func (p *packImpl) Path() string {
+func (p *schemaPackImpl) Path() string {
 	return p.path
 }
 
-type packerImpl struct {
+type schemaPackerImpl struct {
 }
 
-func (p *packerImpl) AddSchema(pack Pack, schema *domain.Schema) error {
+func (p *schemaPackerImpl) AddSchema(pack SchemaPack, schema *domain.Schema) error {
 	if schema == nil {
 		return errors.New("schema cannot be nil")
-	}
-	if schema.IsAbstract {
-		return errors.New("cannot add abstract schema to a pack")
 	}
 	schemas := pack.Schemas()
 	v, exists := schemas[schema.Name]
@@ -45,12 +42,12 @@ func (p *packerImpl) AddSchema(pack Pack, schema *domain.Schema) error {
 	return nil
 }
 
-func (p *packImpl) Schemas() map[string]domain.Schema {
+func (p *schemaPackImpl) Schemas() map[string]domain.Schema {
 	return p.schemas
 }
 
-func NewPack(path string) Pack {
-	return &packImpl{
+func NewSchemaPack(path string) SchemaPack {
+	return &schemaPackImpl{
 		schemas: make(map[string]domain.Schema),
 		path:    path,
 	}

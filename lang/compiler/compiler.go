@@ -7,10 +7,13 @@ import (
 	"github.com/eddieowens/ranvier/lang/services"
 	json "github.com/json-iterator/go"
 	"io/ioutil"
+	"os"
 	"path"
+	"path/filepath"
+	"strings"
 )
 
-const CompilerKey = "Compiler"
+const Key = "Compiler"
 
 type CompileAllOptions struct {
 	CompileOptions
@@ -18,44 +21,56 @@ type CompileAllOptions struct {
 }
 
 type CompileOptions struct {
+	ParseOptions
 	OutputDirectory string `validate:"filepath,required_without=DryRun"`
 	DryRun          bool
 }
 
+type ParseOptions struct {
+	// The root directory of the file to parse which determines the prepended name of the file. The file that is being
+	// parsed must lie within this directory.
+	Root string `validate:"required,filepath"`
+}
+
 type Compiler interface {
-	Compile(filepath string, options *CompileOptions) (*domain.Schema, error)
-	CompileAll(path string, options *CompileAllOptions) (Pack, error)
+	Compile(filepath string, options CompileOptions) (*domain.Schema, error)
+	CompileAll(path string, options CompileAllOptions) (SchemaPack, error)
 	ValidateSemantics(manifest *domain.Schema) error
-	Parse(filepath string) (*domain.Schema, error)
+	Parse(fp string, options ParseOptions) (*domain.Schema, error)
 }
 
 type compilerImpl struct {
-	JsonMerger    commons.JsonMerger     `inject:"JsonMerger"`
-	Analyzer      semantics.Analyzer     `inject:"Analyzer"`
-	FileCollector services.FileCollector `inject:"FileCollector"`
-	FileService   services.FileService   `inject:"FileService"`
-	Packer        Packer                 `inject:"Packer"`
+	JsonMerger       commons.JsonMerger     `inject:"JsonMerger"`
+	Analyzer         semantics.Analyzer     `inject:"Analyzer"`
+	FileCollector    services.FileCollector `inject:"FileCollector"`
+	FileService      services.FileService   `inject:"FileService"`
+	Packer           SchemaPacker           `inject:"SchemaPacker"`
+	ValidatorService services.Validator     `inject:"Validator"`
 }
 
-func (c *compilerImpl) CompileAll(path string, options *CompileAllOptions) (Pack, error) {
+func (c *compilerImpl) CompileAll(path string, options CompileAllOptions) (SchemaPack, error) {
+	options.CompileOptions.ParseOptions.Root = path
+	if err := c.ValidatorService.Struct(options); err != nil {
+		return nil, err
+	}
 	files := c.FileCollector.Collect(path)
-	pErr := NewPackError()
-	pack := NewPack(path)
+	files = c.FileService.SubtractPaths(path, files)
+
+	pErr := NewSchemaPackError()
+	pack := NewSchemaPack(path)
 	for _, f := range files {
-		s, err := c.Compile(f, &options.CompileOptions)
+		s, err := c.Compile(f, options.CompileOptions)
 		if err != nil {
 			pErr.AddError(err)
 			if !options.Force {
 				return nil, pErr
 			}
 		}
-		if !s.IsAbstract {
-			err := c.Packer.AddSchema(pack, s)
-			if err != nil {
-				pErr.AddError(err)
-				if !options.Force {
-					return nil, pErr
-				}
+		err = c.Packer.AddSchema(pack, s)
+		if err != nil {
+			pErr.AddError(err)
+			if !options.Force {
+				return nil, pErr
 			}
 		}
 	}
@@ -71,8 +86,13 @@ func (c *compilerImpl) ValidateSemantics(manifest *domain.Schema) error {
 	return c.Analyzer.Semantics(manifest)
 }
 
-func (c *compilerImpl) Parse(filepath string) (*domain.Schema, error) {
-	d, err := ioutil.ReadFile(filepath)
+func (c *compilerImpl) Parse(fp string, options ParseOptions) (*domain.Schema, error) {
+	if err := c.ValidatorService.Struct(options); err != nil {
+		return nil, err
+	}
+
+	schemaPath := path.Join(options.Root, fp)
+	d, err := ioutil.ReadFile(schemaPath)
 	if err != nil {
 		return nil, err
 	}
@@ -83,12 +103,12 @@ func (c *compilerImpl) Parse(filepath string) (*domain.Schema, error) {
 		return nil, err
 	}
 
+	schma.Name = c.nameFromFile(fp, options.Root)
+
 	var extendedConfig []byte
 	for i, v := range schma.Extends {
-		dir, _ := path.Split(filepath)
-		extPath := path.Join(dir, v)
-		schma.Extends[i] = extPath
-		mani, err := c.Parse(extPath)
+		schma.Extends[i] = path.Join(options.Root, v)
+		mani, err := c.Parse(v, options)
 		if err != nil {
 			return mani, err
 		}
@@ -116,8 +136,7 @@ func (c *compilerImpl) Parse(filepath string) (*domain.Schema, error) {
 	}
 
 	schma.Config = config
-	schma.Path = filepath
-	schma.IsAbstract = schma.Name == ""
+	schma.Path = schemaPath
 	if schma.Type == "" {
 		schma.Type = "json"
 	}
@@ -125,8 +144,22 @@ func (c *compilerImpl) Parse(filepath string) (*domain.Schema, error) {
 	return &schma, nil
 }
 
-func (c *compilerImpl) Compile(filepath string, options *CompileOptions) (*domain.Schema, error) {
-	m, err := c.Parse(filepath)
+func (c *compilerImpl) nameFromFile(fp, root string) string {
+	dirs := strings.Split(fp, string(os.PathSeparator))
+	if len(dirs) <= 0 {
+		return ""
+	}
+	lastInd := len(dirs) - 1
+	lastElem := dirs[lastInd]
+	dirs[lastInd] = strings.TrimSuffix(lastElem, filepath.Ext(lastElem))
+	return strings.Join(dirs, "-")
+}
+
+func (c *compilerImpl) Compile(fp string, options CompileOptions) (*domain.Schema, error) {
+	if err := c.ValidatorService.Struct(options); err != nil {
+		return nil, err
+	}
+	m, err := c.Parse(fp, options.ParseOptions)
 	if err != nil {
 		return nil, err
 	}
@@ -136,7 +169,7 @@ func (c *compilerImpl) Compile(filepath string, options *CompileOptions) (*domai
 		return nil, err
 	}
 
-	if !options.DryRun && !m.IsAbstract {
+	if !options.DryRun {
 		err := c.FileService.ToFile(options.OutputDirectory, m)
 		if err != nil {
 			return nil, err

@@ -22,6 +22,10 @@ var errorMap = map[string]errorMessageFactory{
 	"required": func(e validator.FieldError) string {
 		return fmt.Sprintf("%s is required.", strings.ToLower(e.Field()))
 	},
+	"dns_1123": func(e validator.FieldError) string {
+		return fmt.Sprintf("%s is invalid. The %s must start with an alphanumeric character, end with an alphanumeric "+
+			"character and can only contain '-' special charcaters.", e.Value(), strings.ToLower(e.Field()))
+	},
 	"default": func(e validator.FieldError) string {
 		return fmt.Sprintf("Failed validation for the '%s' tag", e.Tag())
 	},

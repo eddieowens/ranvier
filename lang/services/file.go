@@ -11,15 +11,44 @@ import (
 	"io/ioutil"
 	"os"
 	"path"
+	"strings"
 )
 
 const FileServiceKey = "FileService"
 
 type FileService interface {
 	ToFile(directory string, config *domain.Schema) error
+
+	// Removes the root path from the filepath (fp) if it's present. If the root path cannot be found in the fp, the fp
+	// is returned.
+	SubtractPath(root, fp string) string
+
+	// Same as SubtractPath but for a slice of filepaths (fps).
+	SubtractPaths(root string, fps []string) []string
 }
 
 type fileServiceImpl struct {
+}
+
+func (f *fileServiceImpl) SubtractPaths(root string, fps []string) []string {
+	sl := make([]string, len(fps))
+	for i, v := range fps {
+		sl[i] = f.SubtractPath(root, v)
+	}
+	return sl
+}
+
+func (f *fileServiceImpl) SubtractPath(root, fp string) string {
+	ind := strings.Index(fp, root)
+	if ind != -1 {
+		str := fp[ind+len(root):]
+		if str[0] == os.PathSeparator {
+			return str[1:]
+
+		}
+		return str
+	}
+	return fp
 }
 
 func (f *fileServiceImpl) ToFile(directory string, config *domain.Schema) error {

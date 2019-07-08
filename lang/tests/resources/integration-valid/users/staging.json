@@ -2,7 +2,7 @@
   "name": "StagingUsers",
   "type": "yaml",
   "extends": [
-    "../staging.json"
+    "staging.json"
   ],
   "config": {
     "db": {

@@ -6,5 +6,5 @@ import (
 )
 
 func NewCompiler() compiler.Compiler {
-	return injector.CreateInjector().GetStructPtr(compiler.CompilerKey).(compiler.Compiler)
+	return injector.CreateInjector().GetStructPtr(compiler.Key).(compiler.Compiler)
 }

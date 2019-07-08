@@ -24,6 +24,7 @@ func (v *ValidatorTest) TestValidExtends() {
 	// -- Given
 	//
 	m := domain.Schema{
+		Name: "name",
 		Extends: []string{
 			path.Join(v.Resources(), "final.json"),
 		},
@@ -33,7 +34,7 @@ func (v *ValidatorTest) TestValidExtends() {
 
 	// -- When
 	//
-	err := v.validator.Validate(&m)
+	err := v.validator.Schema(&m)
 
 	// -- Then
 	//
@@ -44,6 +45,7 @@ func (v *ValidatorTest) TestInvalidExtendsExt() {
 	// -- Given
 	//
 	m := domain.Schema{
+		Name: "name",
 		Extends: []string{
 			path.Join(v.Resources(), "final.jso"),
 		},
@@ -54,7 +56,7 @@ func (v *ValidatorTest) TestInvalidExtendsExt() {
 
 	// -- When
 	//
-	err := v.validator.Validate(&m)
+	err := v.validator.Schema(&m)
 
 	// -- Then
 	//
@@ -73,6 +75,7 @@ func (v *ValidatorTest) TestInvalidFilepath() {
 	// -- Given
 	//
 	m := domain.Schema{
+		Name: "name",
 		Extends: []string{
 			path.Join(v.Resources(), "not-exist.yml"),
 		},
@@ -83,7 +86,7 @@ func (v *ValidatorTest) TestInvalidFilepath() {
 
 	// -- When
 	//
-	err := v.validator.Validate(&m)
+	err := v.validator.Schema(&m)
 
 	// -- Then
 	//
