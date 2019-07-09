@@ -1,6 +1,7 @@
 package mocks
 
 import (
+	"github.com/eddieowens/ranvier/server/app/model"
 	"github.com/stretchr/testify/mock"
 	"gopkg.in/src-d/go-git.v4"
 	"gopkg.in/src-d/go-git.v4/plumbing/object"
@@ -29,6 +30,15 @@ func StringSlice(args mock.Arguments, i int) []string {
 	v := args.Get(i)
 	if v != nil {
 		r = v.([]string)
+	}
+	return r
+}
+
+func GitChangeSlice(args mock.Arguments, i int) []model.GitChange {
+	var r []model.GitChange
+	v := args.Get(i)
+	if v != nil {
+		r = v.([]model.GitChange)
 	}
 	return r
 }

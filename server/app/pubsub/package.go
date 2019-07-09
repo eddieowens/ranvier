@@ -7,6 +7,6 @@ type Package struct {
 
 func (*Package) Bindings() []axon.Binding {
 	return []axon.Binding{
-		axon.Bind(PubSubKey).To().Factory(pubSubFactory).WithoutArgs(),
+		axon.Bind(Key).To().Factory(pubSubFactory).WithoutArgs(),
 	}
 }

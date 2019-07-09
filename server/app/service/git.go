@@ -3,10 +3,12 @@ package service
 import (
 	"errors"
 	"fmt"
+	"github.com/eddieowens/ranvier/server/app/model"
 	"gopkg.in/src-d/go-git.v4"
 	"gopkg.in/src-d/go-git.v4/plumbing"
 	"gopkg.in/src-d/go-git.v4/plumbing/object"
 	"gopkg.in/src-d/go-git.v4/plumbing/transport"
+	"gopkg.in/src-d/go-git.v4/utils/merkletrie"
 )
 
 const GitServiceKey = "GitService"
@@ -15,7 +17,7 @@ const remoteName = "origin"
 
 type GitService interface {
 	Clone(remote, branch, directory string) (*git.Repository, error)
-	DiffRemote(repo *git.Repository, branch string) ([]string, error)
+	DiffRemote(repo *git.Repository, branch string) ([]model.GitChange, error)
 	FetchLatestRemoteCommit(repo *git.Repository, branch string) (*object.Commit, error)
 }
 
@@ -23,7 +25,7 @@ type gitServiceImpl struct {
 	AuthMethod transport.AuthMethod `inject:"AuthMethod"`
 }
 
-func (g *gitServiceImpl) DiffRemote(repo *git.Repository, branch string) ([]string, error) {
+func (g *gitServiceImpl) DiffRemote(repo *git.Repository, branch string) ([]model.GitChange, error) {
 	err := repo.Fetch(&git.FetchOptions{
 		Auth: g.AuthMethod,
 	})
@@ -60,9 +62,33 @@ func (g *gitServiceImpl) DiffRemote(repo *git.Repository, branch string) ([]stri
 		return nil, err
 	}
 
-	changes := make([]string, 0)
+	changes := make([]model.GitChange, 0)
 	for _, d := range diffs {
-		changes = append(changes, d.To.Name)
+		a, err := d.Action()
+		if err != nil {
+			return nil, err
+		}
+
+		var gitChange model.GitChange
+		switch a {
+		case merkletrie.Modify:
+			gitChange = model.GitChange{
+				Filename:  d.To.Name,
+				EventType: model.EventTypeUpdate,
+			}
+		case merkletrie.Delete:
+			gitChange = model.GitChange{
+				Filename:  d.From.Name,
+				EventType: model.EventTypeDelete,
+			}
+		case merkletrie.Insert:
+			gitChange = model.GitChange{
+				Filename:  d.To.Name,
+				EventType: model.EventTypeCreate,
+			}
+		}
+
+		changes = append(changes, gitChange)
 	}
 
 	wt, err := repo.Worktree()

@@ -1,11 +1,14 @@
 package service
 
-import "github.com/labstack/gommon/log"
+import (
+	"github.com/eddieowens/ranvier/server/app/model"
+	"github.com/labstack/gommon/log"
+)
 
 const ConfigWsServiceKey = "ConfigWsService"
 
 type ConfigWsService interface {
-	OnUpdate(filepath string)
+	OnUpdate(eventType model.EventType, filepath string)
 	OnStart(filepath string)
 }
 
@@ -13,8 +16,8 @@ type configWsServiceImpl struct {
 	ConfigService ConfigService `inject:"ConfigService"`
 }
 
-func (c *configWsServiceImpl) OnUpdate(filepath string) {
-	err := c.ConfigService.UpdateFromFile(filepath)
+func (c *configWsServiceImpl) OnUpdate(eventType model.EventType, filepath string) {
+	err := c.ConfigService.UpdateFromFile(eventType, filepath)
 	if err != nil {
 		log.Warn(err)
 	}

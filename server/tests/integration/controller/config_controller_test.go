@@ -43,9 +43,9 @@ func (s *ConfigControllerTest) TestQuery() {
 	})
 
 	expected := response.Config{
-		Data: &response.ConfigData{
-			Name:   name,
-			Config: "pg",
+		Data: &model.Config{
+			Name: name,
+			Data: "pg",
 		},
 	}
 

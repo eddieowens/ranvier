@@ -3,6 +3,7 @@ package poller
 import (
 	"fmt"
 	"github.com/eddieowens/ranvier/server/app/configuration"
+	"github.com/eddieowens/ranvier/server/app/model"
 	"github.com/eddieowens/ranvier/server/app/service"
 	"gopkg.in/src-d/go-git.v4"
 	"io"
@@ -15,9 +16,9 @@ import (
 
 const GitPollerKey = "GitPoller"
 
-type OnUpdateFunction func(filepath string)
+type OnUpdateFunction func(eventType model.EventType, filepath string)
 
-type OnStartFunc OnUpdateFunction
+type OnStartFunc func(filepath string)
 
 type GitPoller interface {
 	Start(onUpdate OnUpdateFunction, onStart OnStartFunc, filters ...regexp.Regexp) error
@@ -67,8 +68,8 @@ func (g *gitPollerImpl) Start(onUpdate OnUpdateFunction, onStart OnStartFunc, fi
 				changes = g.filter(changes)
 				if len(changes) > 0 {
 					for _, c := range changes {
-						fp := path.Join(g.Config.Git.Directory, c)
-						onUpdate(fp)
+						fp := path.Join(g.Config.Git.Directory, c.Filename)
+						onUpdate(c.EventType, fp)
 					}
 				}
 			case <-g.quitChannel:
@@ -105,11 +106,11 @@ func (g *gitPollerImpl) filterFile(file string) bool {
 	return true
 }
 
-func (g *gitPollerImpl) filter(files []string) []string {
-	changes := make([]string, 0)
-	for _, f := range files {
-		if g.filterFile(f) {
-			changes = append(changes, f)
+func (g *gitPollerImpl) filter(gitChanges []model.GitChange) []model.GitChange {
+	changes := make([]model.GitChange, 0)
+	for _, gc := range gitChanges {
+		if g.filterFile(gc.Filename) {
+			changes = append(changes, gc)
 		}
 	}
 	return changes

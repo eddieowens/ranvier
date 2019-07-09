@@ -3,7 +3,6 @@ package service
 import (
 	"fmt"
 	"github.com/eddieowens/ranvier/lang/compiler"
-	"github.com/eddieowens/ranvier/lang/domain"
 	"github.com/eddieowens/ranvier/server/app/collections"
 	"github.com/eddieowens/ranvier/server/app/configuration"
 	"github.com/eddieowens/ranvier/server/app/model"
@@ -11,6 +10,7 @@ import (
 	json "github.com/json-iterator/go"
 	"github.com/labstack/echo"
 	"github.com/oliveagle/jsonpath"
+	"path/filepath"
 	"strings"
 )
 
@@ -18,7 +18,7 @@ const ConfigServiceKey = "ConfigService"
 
 type ConfigService interface {
 	SetFromFile(filepath string) error
-	UpdateFromFile(filepath string) error
+	UpdateFromFile(eventType model.EventType, filepath string) error
 	Delete(name string) *model.Config
 	Set(config *model.Config) *model.Config
 	Query(name string, query string) (*model.Config, error)
@@ -33,9 +33,16 @@ type configServiceImpl struct {
 
 func (c *configServiceImpl) Set(config *model.Config) *model.Config {
 	name := strings.ToLower(config.Name)
-	_ = c.ConfigMap.WithLockWindow(name, func(_ model.Config, _ bool, saver collections.Saver) error {
+	_ = c.ConfigMap.WithLockWindow(name, func(_ model.Config, exists bool, saver collections.Saver) error {
 		saver(*config)
-		c.PubSub.Publish(config.Name, config)
+		eventType := model.EventTypeCreate
+		if exists {
+			eventType = model.EventTypeUpdate
+		}
+		c.PubSub.Publish(config.Name, &model.ConfigEvent{
+			EventType: eventType,
+			Config:    *config,
+		})
 		return nil
 	})
 	return config
@@ -48,24 +55,37 @@ func (c *configServiceImpl) Delete(name string) *model.Config {
 		if exists {
 			delete(configs, name)
 			conf = &cfg
-			c.PubSub.Publish(strings.ToLower(name), conf)
+			c.PubSub.Publish(strings.ToLower(name), &model.ConfigEvent{
+				EventType: model.EventTypeDelete,
+				Config:    cfg,
+			})
 		}
 		return nil
 	})
 	return conf
 }
 
-func (c *configServiceImpl) UpdateFromFile(filepath string) error {
-	s, config, err := c.setFromFile(filepath)
-	if err != nil {
-		return err
-	}
+func (c *configServiceImpl) UpdateFromFile(eventType model.EventType, fp string) error {
+	switch eventType {
+	case model.EventTypeCreate, model.EventTypeUpdate:
+		config, isAbstract, err := c.setFromFile(fp)
+		if err != nil {
+			return err
+		}
 
-	if s.IsAbstract {
-		return nil
-	}
+		if isAbstract {
+			return nil
+		}
 
-	c.PubSub.Publish(s.Name, config)
+		c.PubSub.Publish(config.Name, &model.ConfigEvent{
+			EventType: eventType,
+			Config:    *config,
+		})
+	case model.EventTypeDelete:
+		if err := c.deleteFromFile(fp); err != nil {
+			return err
+		}
+	}
 
 	return nil
 }
@@ -79,17 +99,17 @@ func (c *configServiceImpl) SetFromFile(filepath string) error {
 	return nil
 }
 
-func (c *configServiceImpl) setFromFile(filepath string) (*domain.Schema, *model.Config, error) {
-	s, err := c.Compiler.Compile(filepath, &compiler.CompileOptions{
+func (c *configServiceImpl) setFromFile(fp string) (conf *model.Config, isAbstract bool, err error) {
+	fp, _ = filepath.Rel(c.Config.Git.Directory, fp)
+	s, err := c.Compiler.Compile(fp, compiler.CompileOptions{
+		ParseOptions: compiler.ParseOptions{
+			Root: c.Config.Git.Directory,
+		},
 		OutputDirectory: c.Config.Compiler.OutputDirectory,
 	})
 
 	if err != nil {
-		return nil, nil, err
-	}
-
-	if s.IsAbstract {
-		return nil, nil, nil
+		return nil, false, err
 	}
 
 	var data interface{}
@@ -102,7 +122,13 @@ func (c *configServiceImpl) setFromFile(filepath string) (*domain.Schema, *model
 
 	c.ConfigMap.Set(strings.ToLower(config.Name), config)
 
-	return s, &config, nil
+	return &config, true, nil
+}
+
+func (c *configServiceImpl) deleteFromFile(fp string) error {
+	fp, _ = filepath.Rel(c.Config.Git.Directory, fp)
+	c.ConfigMap.Delete(compiler.ToSchemaName(fp))
+	return nil
 }
 
 func (c *configServiceImpl) Query(name string, query string) (*model.Config, error) {
