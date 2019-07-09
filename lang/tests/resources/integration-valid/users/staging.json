@@ -1,5 +1,4 @@
 {
-  "name": "StagingUsers",
   "type": "yaml",
   "extends": [
     "staging.json"

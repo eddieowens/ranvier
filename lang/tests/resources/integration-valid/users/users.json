@@ -1,5 +1,4 @@
 {
-  "name": "Users",
   "type": "toml",
   "config": {
     "db": {
