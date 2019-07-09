@@ -57,7 +57,7 @@ func (f *FileTest) TestSubtractPathRootNotPresent() {
 	root := "/path/to/file/"
 	fp := path.Join("/some", "sub", "path")
 
-	expected := "/some/sub/path"
+	expected := "../../../some/sub/path"
 
 	// -- When
 	//

@@ -103,7 +103,7 @@ func (c *compilerImpl) Parse(fp string, options ParseOptions) (*domain.Schema, e
 		return nil, err
 	}
 
-	schma.Name = c.nameFromFile(fp, options.Root)
+	schma.Name = ToSchemaName(fp)
 
 	var extendedConfig []byte
 	for i, v := range schma.Extends {
@@ -144,17 +144,6 @@ func (c *compilerImpl) Parse(fp string, options ParseOptions) (*domain.Schema, e
 	return &schma, nil
 }
 
-func (c *compilerImpl) nameFromFile(fp, root string) string {
-	dirs := strings.Split(fp, string(os.PathSeparator))
-	if len(dirs) <= 0 {
-		return ""
-	}
-	lastInd := len(dirs) - 1
-	lastElem := dirs[lastInd]
-	dirs[lastInd] = strings.TrimSuffix(lastElem, filepath.Ext(lastElem))
-	return strings.Join(dirs, "-")
-}
-
 func (c *compilerImpl) Compile(fp string, options CompileOptions) (*domain.Schema, error) {
 	if err := c.ValidatorService.Struct(options); err != nil {
 		return nil, err
@@ -177,4 +166,19 @@ func (c *compilerImpl) Compile(fp string, options CompileOptions) (*domain.Schem
 	}
 
 	return m, err
+}
+
+// Converts the Schema's filepath into its corresponding name.
+func ToSchemaName(fp string) string {
+	fp = path.Join(string(os.PathSeparator), fp)
+	dirs := strings.Split(fp, string(os.PathSeparator))
+	dirs = dirs[1:]
+	if len(dirs) <= 0 {
+		return ""
+	}
+	lastInd := len(dirs) - 1
+	lastElem := dirs[lastInd]
+	dirs[lastInd] = strings.TrimSuffix(lastElem, filepath.Ext(lastElem))
+
+	return strings.Join(dirs, "-")
 }

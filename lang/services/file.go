@@ -11,7 +11,7 @@ import (
 	"io/ioutil"
 	"os"
 	"path"
-	"strings"
+	"path/filepath"
 )
 
 const FileServiceKey = "FileService"
@@ -39,16 +39,11 @@ func (f *fileServiceImpl) SubtractPaths(root string, fps []string) []string {
 }
 
 func (f *fileServiceImpl) SubtractPath(root, fp string) string {
-	ind := strings.Index(fp, root)
-	if ind != -1 {
-		str := fp[ind+len(root):]
-		if str[0] == os.PathSeparator {
-			return str[1:]
-
-		}
-		return str
+	p, err := filepath.Rel(root, fp)
+	if err != nil {
+		return ""
 	}
-	return fp
+	return p
 }
 
 func (f *fileServiceImpl) ToFile(directory string, config *domain.Schema) error {
