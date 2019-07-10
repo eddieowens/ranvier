@@ -33,7 +33,7 @@ func (c *ClientTest) TestQuery() {
 	}
 
 	expected := &model.Config{
-		Name: "stagingusers",
+		Name: "users-staging",
 		Data: expectedData,
 	}
 
@@ -106,7 +106,7 @@ func (c *ClientTest) TestDisconnect() {
 	//
 }
 
-func (c *ClientTest) TestWebsocketUpdateReceive() {
+func (c *ClientTest) TestConfigCreate() {
 	// -- Given
 	//
 	client, err := NewClient(&ClientOptions{
@@ -129,14 +129,17 @@ func (c *ClientTest) TestWebsocketUpdateReceive() {
 		c.FailNow(err.Error())
 	}
 
-	expected := &model.Config{
-		Name: expectedName,
-		Data: "some data",
+	expected := model.ConfigEvent{
+		Config: model.Config{
+			Name: expectedName,
+			Data: "some data",
+		},
+		EventType: model.EventTypeCreate,
 	}
 
 	go func() {
 		time.Sleep(time.Second * 1)
-		_, err := client.(*clientImpl).Update(expected)
+		_, err := client.(*clientImpl).Update(&expected.Config)
 
 		if !c.NoError(err) {
 			panic(err)
@@ -149,7 +152,118 @@ func (c *ClientTest) TestWebsocketUpdateReceive() {
 
 	// -- Then
 	//
-	c.Equal(expected, &actual)
+	c.Equal(expected, actual)
+}
+
+func (c *ClientTest) TestConfigUpdate() {
+	// -- Given
+	//
+	client, err := NewClient(&ClientOptions{
+		Hostname:        c.Hostname,
+		ConfigDirectory: os.TempDir(),
+	})
+
+	if !c.NoError(err) {
+		c.FailNow(err.Error())
+	}
+
+	expectedName := "expected"
+
+	_, err = client.(*clientImpl).Update(&model.Config{
+		Name: expectedName,
+		Data: "some data",
+	})
+
+	if !c.NoError(err) {
+		c.FailNow(err.Error())
+	}
+
+	conn, err := client.Connect(&ConnOptions{
+		Names: []string{expectedName},
+	})
+	defer client.Disconnect(conn)
+
+	if !c.NoError(err) {
+		c.FailNow(err.Error())
+	}
+
+	expected := model.ConfigEvent{
+		Config: model.Config{
+			Name: expectedName,
+			Data: "new data",
+		},
+		EventType: model.EventTypeUpdate,
+	}
+
+	go func() {
+		time.Sleep(time.Second * 1)
+		_, err := client.(*clientImpl).Update(&expected.Config)
+
+		if !c.NoError(err) {
+			panic(err)
+		}
+	}()
+
+	// -- When
+	//
+	actual := <-conn.OnUpdate
+
+	// -- Then
+	//
+	c.Equal(expected, actual)
+}
+
+func (c *ClientTest) TestConfigDelete() {
+	// -- Given
+	//
+	client, err := NewClient(&ClientOptions{
+		Hostname:        c.Hostname,
+		ConfigDirectory: os.TempDir(),
+	})
+
+	if !c.NoError(err) {
+		c.FailNow(err.Error())
+	}
+
+	expectedName := "expected"
+
+	_, err = client.(*clientImpl).Update(&model.Config{
+		Name: expectedName,
+		Data: "some data",
+	})
+
+	conn, err := client.Connect(&ConnOptions{
+		Names: []string{expectedName},
+	})
+	defer client.Disconnect(conn)
+
+	if !c.NoError(err) {
+		c.FailNow(err.Error())
+	}
+
+	expected := model.ConfigEvent{
+		Config: model.Config{
+			Name: expectedName,
+		},
+		EventType: model.EventTypeDelete,
+	}
+
+	go func() {
+		time.Sleep(time.Second * 1)
+		_, err := client.(*clientImpl).Update(&expected.Config)
+
+		if !c.NoError(err) {
+			panic(err)
+		}
+	}()
+
+	// -- When
+	//
+	actual := <-conn.OnUpdate
+
+	// -- Then
+	//
+	c.Equal(expected, actual)
 }
 
 func TestClientTest(t *testing.T) {

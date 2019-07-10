@@ -42,7 +42,7 @@ type ConnOptions struct {
 type Connection struct {
 	// The channel for all incoming configuration changes. Listen for messages on this channel to get realtime updates on
 	// configuration changes.
-	OnUpdate chan model.Config
+	OnUpdate chan model.ConfigEvent
 
 	closer chan bool
 }
@@ -221,7 +221,7 @@ func (c *clientImpl) Disconnect(conn *Connection) {
 }
 
 func (c *clientImpl) Connect(options *ConnOptions) (*Connection, error) {
-	configChan := make(chan model.Config, 0)
+	configChan := make(chan model.ConfigEvent, 0)
 	closer := make(chan bool, 1)
 	parsedUrl := &url.URL{
 		Host:   c.Options.Hostname,
@@ -239,14 +239,14 @@ func (c *clientImpl) Connect(options *ConnOptions) (*Connection, error) {
 			return nil, err
 		}
 
-		go func(ws *websocket.Conn, closer chan bool, configChan chan model.Config) {
+		go func(ws *websocket.Conn, closer chan bool, configChan chan model.ConfigEvent) {
 			for {
 				if len(closer) > 0 {
 					ws.Close()
 					return
 				}
-				var conf model.Config
-				err = ws.ReadJSON(&conf)
+				conf := new(model.ConfigEvent)
+				err = ws.ReadJSON(conf)
 				if err != nil {
 					if _, ok := err.(*websocket.CloseError); ok {
 						time.Sleep(retryInterval)
@@ -255,9 +255,9 @@ func (c *clientImpl) Connect(options *ConnOptions) (*Connection, error) {
 					continue
 				}
 
-				_ = c.writeToDisk(&conf)
-				c.ConfigMap.Set(conf.Name, conf)
-				configChan <- conf
+				_ = c.writeToDisk(&conf.Config)
+				c.ConfigMap.Set(conf.Config.Name, conf.Config)
+				configChan <- *conf
 			}
 		}(ws, closer, configChan)
 	}

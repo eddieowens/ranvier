@@ -68,13 +68,9 @@ func (c *configServiceImpl) Delete(name string) *model.Config {
 func (c *configServiceImpl) UpdateFromFile(eventType model.EventType, fp string) error {
 	switch eventType {
 	case model.EventTypeCreate, model.EventTypeUpdate:
-		config, isAbstract, err := c.setFromFile(fp)
+		config, err := c.setFromFile(fp)
 		if err != nil {
 			return err
-		}
-
-		if isAbstract {
-			return nil
 		}
 
 		c.PubSub.Publish(config.Name, &model.ConfigEvent{
@@ -82,16 +78,18 @@ func (c *configServiceImpl) UpdateFromFile(eventType model.EventType, fp string)
 			Config:    *config,
 		})
 	case model.EventTypeDelete:
-		if err := c.deleteFromFile(fp); err != nil {
-			return err
-		}
+		config := c.deleteFromFile(fp)
+		c.PubSub.Publish(config.Name, &model.ConfigEvent{
+			EventType: eventType,
+			Config:    *config,
+		})
 	}
 
 	return nil
 }
 
 func (c *configServiceImpl) SetFromFile(filepath string) error {
-	_, _, err := c.setFromFile(filepath)
+	_, err := c.setFromFile(filepath)
 	if err != nil {
 		return err
 	}
@@ -99,7 +97,7 @@ func (c *configServiceImpl) SetFromFile(filepath string) error {
 	return nil
 }
 
-func (c *configServiceImpl) setFromFile(fp string) (conf *model.Config, isAbstract bool, err error) {
+func (c *configServiceImpl) setFromFile(fp string) (conf *model.Config, err error) {
 	fp, _ = filepath.Rel(c.Config.Git.Directory, fp)
 	s, err := c.Compiler.Compile(fp, compiler.CompileOptions{
 		ParseOptions: compiler.ParseOptions{
@@ -109,7 +107,7 @@ func (c *configServiceImpl) setFromFile(fp string) (conf *model.Config, isAbstra
 	})
 
 	if err != nil {
-		return nil, false, err
+		return nil, err
 	}
 
 	var data interface{}
@@ -122,13 +120,19 @@ func (c *configServiceImpl) setFromFile(fp string) (conf *model.Config, isAbstra
 
 	c.ConfigMap.Set(strings.ToLower(config.Name), config)
 
-	return &config, true, nil
+	return &config, nil
 }
 
-func (c *configServiceImpl) deleteFromFile(fp string) error {
+func (c *configServiceImpl) deleteFromFile(fp string) *model.Config {
 	fp, _ = filepath.Rel(c.Config.Git.Directory, fp)
-	c.ConfigMap.Delete(compiler.ToSchemaName(fp))
-	return nil
+	var conf model.Config
+	name := compiler.ToSchemaName(fp)
+	_ = c.ConfigMap.WithLock(func(configs map[string]model.Config) error {
+		conf = configs[name]
+		delete(configs, name)
+		return nil
+	})
+	return &conf
 }
 
 func (c *configServiceImpl) Query(name string, query string) (*model.Config, error) {

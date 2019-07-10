@@ -45,12 +45,15 @@ github.com/eddieowens/ranvier/lang v0.0.0-20190608191958-03bba0ed0902 h1:dudUOAv
 github.com/eddieowens/ranvier/lang v0.0.0-20190608191958-03bba0ed0902/go.mod h1:kJC82e6wpzyuESrI/W31liuKaux+GwnVpIFtQGeBVEk=
 github.com/eddieowens/ranvier/lang v0.0.0-20190615195836-8b8488d6ebce h1:A9X2qQyrGEJVSPVwfSPH23WXdwaY04m7JhUI/GLM5rE=
 github.com/eddieowens/ranvier/lang v0.0.0-20190615195836-8b8488d6ebce/go.mod h1:1PKyrywEXma3nRvBR7GYuTtLJjAKq5w4xbSNcfbm18c=
+github.com/eddieowens/ranvier/lang v0.0.0-20190709062901-c7f9e2285ea4/go.mod h1:AILTsn85DPNjS0LXAp5xKVgT7Zvj2Jsf9Mjtl+lpvEE=
 github.com/eddieowens/ranvier/server v0.0.0-20190609204105-3aca16beb207 h1:yZFojGWUrsuaGz1qhKBmKKwuee9KmTbSk1r18IE5MDg=
 github.com/eddieowens/ranvier/server v0.0.0-20190609204105-3aca16beb207/go.mod h1:gd0JYsLb5Lxe4P2FsU6gwmqJDy2UOvcDisa5P9qLjNk=
 github.com/eddieowens/ranvier/server v0.0.0-20190615200506-d081ca4dcc72 h1:PocQg6gfu/4D5wswZDyTnixxwddbfW//0WKhTF4Oal0=
 github.com/eddieowens/ranvier/server v0.0.0-20190615200506-d081ca4dcc72/go.mod h1:Kki+DVYec7oODVtBDnc4f5R1bnHR2rlaG7kK/UuYCWA=
 github.com/eddieowens/ranvier/server v0.0.0-20190703051653-769c7b5ff4d6 h1:2S+STZypYkOUn6nL0LWvno1p7UvXbdwBDo9v8FbxL8Q=
 github.com/eddieowens/ranvier/server v0.0.0-20190703051653-769c7b5ff4d6/go.mod h1:y2hoXgbIzP3W85rDTUDFebemzKZMIO7PI1CuYbBoR2I=
+github.com/eddieowens/ranvier/server v0.0.0-20190709071118-f8e316d1c7d8 h1:1DQ9rIoQbd18M73ykyNErlGA0oANcgwHuSlTod/Mun4=
+github.com/eddieowens/ranvier/server v0.0.0-20190709071118-f8e316d1c7d8/go.mod h1:8NIV3uyBl2JHFRT/RdVhidJzq3NooyeGIh8o3fdc2qU=
 github.com/emirpasic/gods v1.9.0 h1:rUF4PuzEjMChMiNsVjdI+SyLu7rEqpQ5reNFnhC7oFo=
 github.com/emirpasic/gods v1.9.0/go.mod h1:YfzfFFoVP/catgzJb4IKIqXjX78Ha8FMSDh3ymbK86o=
 github.com/flynn/go-shlex v0.0.0-20150515145356-3f9db97f8568/go.mod h1:xEzjJPgXI435gkrCt3MPfRiAkVrwSbHsst4LCFVfpJc=
@@ -195,7 +198,11 @@ github.com/valyala/fasttemplate v1.0.1 h1:tY9CJiPnMXf1ERmG2EyK7gNUd+c6RKGD0IfU8W
 github.com/valyala/fasttemplate v1.0.1/go.mod h1:UQGH1tvbgY+Nz5t2n7tXsz52dQxojPUpymEIMZ47gx8=
 github.com/xanzy/ssh-agent v0.2.0 h1:Adglfbi5p9Z0BmK2oKU9nTG+zKfniSfnaMYB+ULd+Ro=
 github.com/xanzy/ssh-agent v0.2.0/go.mod h1:0NyE30eGUDliuLEHJgYte/zncp2zdTStcOnWhgSqHD8=
+github.com/xeipuuv/gojsonpointer v0.0.0-20180127040702-4e3ac2762d5f/go.mod h1:N2zxlSyiKSe5eX1tZViRH5QA0qijqEDrYZiPEAiq3wU=
+github.com/xeipuuv/gojsonreference v0.0.0-20180127040603-bd5ef7bd5415/go.mod h1:GwrjFmJcFw6At/Gs6z4yjiIwzuJ1/+UwLxMQDVQXShQ=
+github.com/xeipuuv/gojsonschema v1.1.0/go.mod h1:5yf86TLmAcydyeJq5YvxkGPE2fm/u4myDekKRoLuqhs=
 github.com/xordataexchange/crypt v0.0.3-0.20170626215501-b2862e3d0a77/go.mod h1:aYKd//L2LvnjZzWKhF00oedf4jCCReLcmhLdhm1A27Q=
+go4.org v0.0.0-20190313082347-94abd6928b1d/go.mod h1:MkTOUMDaeVYJUOUsaDXIhWPZYa1yOyC1qaOBpL57BhE=
 golang.org/x/crypto v0.0.0-20180904163835-0709b304e793/go.mod h1:6SG95UA2DQfeDnfUPMdvaQW0Q7yPrPDi9nlGo2tz2b4=
 golang.org/x/crypto v0.0.0-20181203042331-505ab145d0a9/go.mod h1:6SG95UA2DQfeDnfUPMdvaQW0Q7yPrPDi9nlGo2tz2b4=
 golang.org/x/crypto v0.0.0-20190130090550-b01c7a725664/go.mod h1:6SG95UA2DQfeDnfUPMdvaQW0Q7yPrPDi9nlGo2tz2b4=
@@ -213,6 +220,8 @@ golang.org/x/net v0.0.0-20190322120337-addf6b3196f6/go.mod h1:t9HGtf8HONx5eT2rtn
 golang.org/x/net v0.0.0-20190404232315-eb5bcb51f2a3/go.mod h1:t9HGtf8HONx5eT2rtn7q6eTqICYqUVnKs3thJo3Qplg=
 golang.org/x/net v0.0.0-20190509222800-a4d6f7feada5 h1:6M3SDHlHHDCx2PcQw3S4KsR170vGqDhJDOmpVd4Hjak=
 golang.org/x/net v0.0.0-20190509222800-a4d6f7feada5/go.mod h1:t9HGtf8HONx5eT2rtn7q6eTqICYqUVnKs3thJo3Qplg=
+golang.org/x/net v0.0.0-20190628185345-da137c7871d7 h1:rTIdg5QFRR7XCaK4LCjBiPbx8j4DQRpdYMnGn/bJUEU=
+golang.org/x/net v0.0.0-20190628185345-da137c7871d7/go.mod h1:z5CRVTTTmAJ677TzLLGU+0bjPO0LkuOLi4/5GtJWs/s=
 golang.org/x/sync v0.0.0-20190423024810-112230192c58/go.mod h1:RxMgew5VJxzue5/jJTE5uejpjVlOe/izrB70Jof72aM=
 golang.org/x/sys v0.0.0-20180903190138-2b024373dcd9/go.mod h1:STP8DvDyc/dI5b8T5hshtkjS+E42TnysNCUPdjciGhY=
 golang.org/x/sys v0.0.0-20181205085412-a5c9d58dba9a/go.mod h1:STP8DvDyc/dI5b8T5hshtkjS+E42TnysNCUPdjciGhY=
@@ -222,6 +231,7 @@ golang.org/x/sys v0.0.0-20190215142949-d0b11bdaac8a/go.mod h1:STP8DvDyc/dI5b8T5h
 golang.org/x/sys v0.0.0-20190222072716-a9d3bda3a223/go.mod h1:STP8DvDyc/dI5b8T5hshtkjS+E42TnysNCUPdjciGhY=
 golang.org/x/sys v0.0.0-20190322080309-f49334f85ddc/go.mod h1:h1NjWce9XRLGQEsW7wpKNCjG9DtNlClVuFLEZdDNbEs=
 golang.org/x/sys v0.0.0-20190412213103-97732733099d/go.mod h1:h1NjWce9XRLGQEsW7wpKNCjG9DtNlClVuFLEZdDNbEs=
+golang.org/x/sys v0.0.0-20190422165155-953cdadca894 h1:Cz4ceDQGXuKRnVBDTS23GTn/pU5OE2C0WrNTOYK1Uuc=
 golang.org/x/sys v0.0.0-20190422165155-953cdadca894/go.mod h1:h1NjWce9XRLGQEsW7wpKNCjG9DtNlClVuFLEZdDNbEs=
 golang.org/x/sys v0.0.0-20190509141414-a5b02f93d862 h1:rM0ROo5vb9AdYJi1110yjWGMej9ITfKddS89P3Fkhug=
 golang.org/x/sys v0.0.0-20190509141414-a5b02f93d862/go.mod h1:h1NjWce9XRLGQEsW7wpKNCjG9DtNlClVuFLEZdDNbEs=
