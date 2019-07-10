@@ -23,7 +23,7 @@ type CompileAllOptions struct {
 type CompileOptions struct {
 	ParseOptions
 	// The directory that the file will be output to. If the directory does not exist, it will be created.
-	OutputDirectory string `validate:"filepath,required_without=DryRun"`
+	OutputDirectory string `validate:"required_without=DryRun"`
 	DryRun          bool
 }
 
