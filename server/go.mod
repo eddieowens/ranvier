@@ -6,7 +6,7 @@ require (
 	github.com/alecthomas/template v0.0.0-20160405071501-a0175ee3bccc
 	github.com/eddieowens/axon v0.6.0
 	github.com/eddieowens/ranvier/commons v0.0.0-20190615195836-8b8488d6ebce
-	github.com/eddieowens/ranvier/lang v0.0.0-20190709062901-c7f9e2285ea4
+	github.com/eddieowens/ranvier/lang v0.0.0-20190710053617-478e20eeb1fa
 	github.com/go-openapi/jsonpointer v0.19.0 // indirect
 	github.com/go-openapi/jsonreference v0.19.0 // indirect
 	github.com/go-openapi/spec v0.19.0 // indirect
