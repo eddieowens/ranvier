@@ -51,6 +51,8 @@ func (f *fileServiceImpl) ToFile(directory string, config *domain.Schema) error 
 		return errors.New("schema cannot be nil")
 	}
 
+	_ = os.MkdirAll(directory, os.ModePerm)
+
 	var jsonConfig interface{}
 	err := json.Unmarshal(config.Config, &jsonConfig)
 	if err != nil {
