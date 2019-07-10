@@ -144,9 +144,11 @@ func (c *clientImpl) Create(config *model.Config) (*model.Config, error) {
 //
 // Deletes a Config object from the Ranvier server. This will cause a websocket event to be emitted.
 func (c *clientImpl) Delete(name string) (*model.Config, error) {
-	parsedUrl, _ := url.Parse(c.Options.Hostname)
-	parsedUrl.Scheme = "http"
-	parsedUrl.Path = "api/config/" + name
+	parsedUrl := url.URL{
+		Host:   c.Options.Hostname,
+		Scheme: "http",
+		Path:   "api/config/" + name,
+	}
 	req, err := http.NewRequest(http.MethodDelete, parsedUrl.String(), nil)
 	if err != nil {
 		return nil, err
@@ -287,7 +289,19 @@ func (c *clientImpl) Query(options *QueryOptions) (*model.Config, error) {
 }
 
 func (c *clientImpl) toUrl(name string, query string) string {
-	return fmt.Sprintf("%s/api/config/%s?query%s", c.Options.Hostname, name, query)
+	u := url.URL{
+		Host:   c.Options.Hostname,
+		Path:   fmt.Sprintf("api/config/%s", name),
+		Scheme: "http",
+	}
+
+	q := u.Query()
+
+	q.Set("query", query)
+
+	u.RawQuery = q.Encode()
+
+	return u.String()
 }
 
 func (c *clientImpl) query(config *model.Config, query string) (*model.Config, error) {

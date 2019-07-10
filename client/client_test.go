@@ -10,13 +10,12 @@ import (
 
 type ClientTest struct {
 	*IntegrationSuite
+	client Client
 }
 
-func (c *ClientTest) TestQuery() {
-	// -- Given
-	//
+func (c *ClientTest) SetupTest() {
 	client, err := NewClient(&ClientOptions{
-		Hostname:        c.Hostname,
+		Hostname:        "localhost:8080",
 		ConfigDirectory: os.TempDir(),
 	})
 
@@ -24,6 +23,12 @@ func (c *ClientTest) TestQuery() {
 		c.FailNow(err.Error())
 	}
 
+	c.client = client
+}
+
+func (c *ClientTest) TestQuery() {
+	// -- Given
+	//
 	expectedData := map[string]interface{}{
 		"db": map[string]interface{}{
 			"conns": float64(10),
@@ -39,7 +44,7 @@ func (c *ClientTest) TestQuery() {
 
 	// -- When
 	//
-	conf, err := client.Query(&QueryOptions{
+	conf, err := c.client.Query(&QueryOptions{
 		IgnoreCache: false,
 		Name:        expected.Name,
 		Query:       "$",
@@ -53,23 +58,12 @@ func (c *ClientTest) TestQuery() {
 }
 
 func (c *ClientTest) TestConnect() {
-	// -- Given
-	//
-	client, err := NewClient(&ClientOptions{
-		Hostname:        c.Hostname,
-		ConfigDirectory: os.TempDir(),
-	})
-
-	if !c.NoError(err) {
-		c.FailNow(err.Error())
-	}
-
 	// -- When
 	//
-	conn, err := client.Connect(&ConnOptions{
+	conn, err := c.client.Connect(&ConnOptions{
 		Names: []string{"stagingusers"},
 	})
-	defer client.Disconnect(conn)
+	defer c.client.Disconnect(conn)
 
 	// -- Then
 	//
@@ -80,17 +74,7 @@ func (c *ClientTest) TestConnect() {
 
 func (c *ClientTest) TestDisconnect() {
 	// -- Given
-	//
-	client, err := NewClient(&ClientOptions{
-		Hostname:        c.Hostname,
-		ConfigDirectory: os.TempDir(),
-	})
-
-	if !c.NoError(err) {
-		c.FailNow(err.Error())
-	}
-
-	conn, err := client.Connect(&ConnOptions{
+	conn, err := c.client.Connect(&ConnOptions{
 		Names: []string{"stagingusers"},
 	})
 
@@ -100,7 +84,7 @@ func (c *ClientTest) TestDisconnect() {
 
 	// -- When
 	//
-	client.Disconnect(conn)
+	c.client.Disconnect(conn)
 
 	// -- Then
 	//
@@ -109,21 +93,12 @@ func (c *ClientTest) TestDisconnect() {
 func (c *ClientTest) TestConfigCreate() {
 	// -- Given
 	//
-	client, err := NewClient(&ClientOptions{
-		Hostname:        c.Hostname,
-		ConfigDirectory: os.TempDir(),
-	})
+	expectedName := "expectedCreate"
 
-	if !c.NoError(err) {
-		c.FailNow(err.Error())
-	}
-
-	expectedName := "expected"
-
-	conn, err := client.Connect(&ConnOptions{
+	conn, err := c.client.Connect(&ConnOptions{
 		Names: []string{expectedName},
 	})
-	defer client.Disconnect(conn)
+	defer c.client.Disconnect(conn)
 
 	if !c.NoError(err) {
 		c.FailNow(err.Error())
@@ -139,7 +114,7 @@ func (c *ClientTest) TestConfigCreate() {
 
 	go func() {
 		time.Sleep(time.Second * 1)
-		_, err := client.(*clientImpl).Update(&expected.Config)
+		_, err := c.client.(*clientImpl).Update(&expected.Config)
 
 		if !c.NoError(err) {
 			panic(err)
@@ -158,18 +133,9 @@ func (c *ClientTest) TestConfigCreate() {
 func (c *ClientTest) TestConfigUpdate() {
 	// -- Given
 	//
-	client, err := NewClient(&ClientOptions{
-		Hostname:        c.Hostname,
-		ConfigDirectory: os.TempDir(),
-	})
+	expectedName := "expectedUpdate"
 
-	if !c.NoError(err) {
-		c.FailNow(err.Error())
-	}
-
-	expectedName := "expected"
-
-	_, err = client.(*clientImpl).Update(&model.Config{
+	_, err := c.client.(*clientImpl).Update(&model.Config{
 		Name: expectedName,
 		Data: "some data",
 	})
@@ -178,10 +144,10 @@ func (c *ClientTest) TestConfigUpdate() {
 		c.FailNow(err.Error())
 	}
 
-	conn, err := client.Connect(&ConnOptions{
+	conn, err := c.client.Connect(&ConnOptions{
 		Names: []string{expectedName},
 	})
-	defer client.Disconnect(conn)
+	defer c.client.Disconnect(conn)
 
 	if !c.NoError(err) {
 		c.FailNow(err.Error())
@@ -197,7 +163,7 @@ func (c *ClientTest) TestConfigUpdate() {
 
 	go func() {
 		time.Sleep(time.Second * 1)
-		_, err := client.(*clientImpl).Update(&expected.Config)
+		_, err := c.client.(*clientImpl).Update(&expected.Config)
 
 		if !c.NoError(err) {
 			panic(err)
@@ -216,26 +182,17 @@ func (c *ClientTest) TestConfigUpdate() {
 func (c *ClientTest) TestConfigDelete() {
 	// -- Given
 	//
-	client, err := NewClient(&ClientOptions{
-		Hostname:        c.Hostname,
-		ConfigDirectory: os.TempDir(),
-	})
+	expectedName := "expectedDelete"
 
-	if !c.NoError(err) {
-		c.FailNow(err.Error())
-	}
-
-	expectedName := "expected"
-
-	_, err = client.(*clientImpl).Update(&model.Config{
+	_, err := c.client.(*clientImpl).Update(&model.Config{
 		Name: expectedName,
 		Data: "some data",
 	})
 
-	conn, err := client.Connect(&ConnOptions{
+	conn, err := c.client.Connect(&ConnOptions{
 		Names: []string{expectedName},
 	})
-	defer client.Disconnect(conn)
+	defer c.client.Disconnect(conn)
 
 	if !c.NoError(err) {
 		c.FailNow(err.Error())
@@ -244,13 +201,14 @@ func (c *ClientTest) TestConfigDelete() {
 	expected := model.ConfigEvent{
 		Config: model.Config{
 			Name: expectedName,
+			Data: "some data",
 		},
 		EventType: model.EventTypeDelete,
 	}
 
 	go func() {
 		time.Sleep(time.Second * 1)
-		_, err := client.(*clientImpl).Update(&expected.Config)
+		_, err := c.client.(*clientImpl).Delete(expectedName)
 
 		if !c.NoError(err) {
 			panic(err)

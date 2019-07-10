@@ -8,7 +8,7 @@ require (
 	github.com/containerd/continuity v0.0.0-20190426062206-aaeac12a7ffc // indirect
 	github.com/docker/go-connections v0.4.0 // indirect
 	github.com/docker/go-units v0.4.0 // indirect
-	github.com/eddieowens/ranvier/server v0.0.0-20190709071118-f8e316d1c7d8
+	github.com/eddieowens/ranvier/server v0.0.0-20190710064021-dd5e1d2b0af0
 	github.com/gorilla/websocket v1.4.0
 	github.com/oliveagle/jsonpath v0.0.0-20180606110733-2e52cf6e6852
 	github.com/opencontainers/runc v0.1.1 // indirect
