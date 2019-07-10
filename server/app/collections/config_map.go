@@ -8,7 +8,7 @@ import (
 type WriteRunnerWindow func(config model.Config, exists bool, saver Saver) error
 type WriteRunner func(map[string]model.Config) error
 type ReadRunnerWindow func(config model.Config, exists bool) error
-type Saver func(config model.Config)
+type Saver func(name string, config model.Config)
 type GetAllFilter func(name string, config model.Config) bool
 
 type ConfigMap interface {
@@ -63,8 +63,8 @@ func (s *configMapImpl) WithLockWindow(name string, runner WriteRunnerWindow) er
 	s.lock.Lock()
 	defer s.lock.Unlock()
 	val, exists := s.m[name]
-	return runner(val, exists, func(config model.Config) {
-		s.m[config.Name] = config
+	return runner(val, exists, func(name string, config model.Config) {
+		s.m[name] = config
 	})
 }
 

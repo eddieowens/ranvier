@@ -5,25 +5,25 @@ import (
 	"github.com/labstack/gommon/log"
 )
 
-const ConfigWsServiceKey = "ConfigWsService"
+const ConfigPollerServiceKey = "ConfigPollerService"
 
-type ConfigWsService interface {
+type ConfigPollerService interface {
 	OnUpdate(eventType model.EventType, filepath string)
 	OnStart(filepath string)
 }
 
-type configWsServiceImpl struct {
+type configPollerServiceImpl struct {
 	ConfigService ConfigService `inject:"ConfigService"`
 }
 
-func (c *configWsServiceImpl) OnUpdate(eventType model.EventType, filepath string) {
+func (c *configPollerServiceImpl) OnUpdate(eventType model.EventType, filepath string) {
 	err := c.ConfigService.UpdateFromFile(eventType, filepath)
 	if err != nil {
 		log.Warn(err)
 	}
 }
 
-func (c *configWsServiceImpl) OnStart(filepath string) {
+func (c *configPollerServiceImpl) OnStart(filepath string) {
 	err := c.ConfigService.SetFromFile(filepath)
 	if err != nil {
 		log.Warn(err)

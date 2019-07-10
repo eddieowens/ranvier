@@ -21,10 +21,10 @@ type App interface {
 }
 
 type appImpl struct {
-	Router          router.Router           `inject:"Router"`
-	GitPoller       poller.GitPoller        `inject:"GitPoller"`
-	ConfigWsService service.ConfigWsService `inject:"ConfigWsService"`
-	Config          configuration.Config    `inject:"Config"`
+	Router          router.Router               `inject:"Router"`
+	GitPoller       poller.GitPoller            `inject:"GitPoller"`
+	ConfigWsService service.ConfigPollerService `inject:"ConfigPollerService"`
+	Config          configuration.Config        `inject:"Config"`
 }
 
 func (a *appImpl) Run() {

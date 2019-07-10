@@ -34,7 +34,7 @@ type configServiceImpl struct {
 func (c *configServiceImpl) Set(config *model.Config) *model.Config {
 	name := strings.ToLower(config.Name)
 	_ = c.ConfigMap.WithLockWindow(name, func(_ model.Config, exists bool, saver collections.Saver) error {
-		saver(*config)
+		saver(name, *config)
 		eventType := model.EventTypeCreate
 		if exists {
 			eventType = model.EventTypeUpdate
@@ -51,6 +51,7 @@ func (c *configServiceImpl) Set(config *model.Config) *model.Config {
 func (c *configServiceImpl) Delete(name string) *model.Config {
 	var conf *model.Config
 	_ = c.ConfigMap.WithLock(func(configs map[string]model.Config) error {
+		name = strings.ToLower(name)
 		cfg, exists := configs[name]
 		if exists {
 			delete(configs, name)
@@ -78,11 +79,7 @@ func (c *configServiceImpl) UpdateFromFile(eventType model.EventType, fp string)
 			Config:    *config,
 		})
 	case model.EventTypeDelete:
-		config := c.deleteFromFile(fp)
-		c.PubSub.Publish(config.Name, &model.ConfigEvent{
-			EventType: eventType,
-			Config:    *config,
-		})
+		c.Delete(compiler.ToSchemaName(fp))
 	}
 
 	return nil
@@ -126,7 +123,7 @@ func (c *configServiceImpl) setFromFile(fp string) (conf *model.Config, err erro
 func (c *configServiceImpl) deleteFromFile(fp string) *model.Config {
 	fp, _ = filepath.Rel(c.Config.Git.Directory, fp)
 	var conf model.Config
-	name := compiler.ToSchemaName(fp)
+	name := strings.ToLower(compiler.ToSchemaName(fp))
 	_ = c.ConfigMap.WithLock(func(configs map[string]model.Config) error {
 		conf = configs[name]
 		delete(configs, name)

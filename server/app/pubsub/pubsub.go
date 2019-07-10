@@ -3,6 +3,7 @@ package pubsub
 import (
 	"github.com/eddieowens/axon"
 	"github.com/eddieowens/ranvier/server/app/model"
+	"strings"
 	"sync"
 )
 
@@ -19,6 +20,7 @@ type pubSubImpl struct {
 }
 
 func (p *pubSubImpl) Publish(topic string, config *model.ConfigEvent) {
+	topic = strings.ToLower(topic)
 	p.lock.RLock()
 	defer p.lock.RUnlock()
 	topicChannels := p.topics[topic]
@@ -34,6 +36,7 @@ func (p *pubSubImpl) Publish(topic string, config *model.ConfigEvent) {
 
 func (p *pubSubImpl) Subscribe(topic string) chan model.ConfigEvent {
 	c := make(chan model.ConfigEvent)
+	topic = strings.ToLower(topic)
 	p.lock.Lock()
 	defer p.lock.Unlock()
 	topicChannels := p.topics[topic]

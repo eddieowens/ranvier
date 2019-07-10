@@ -17,6 +17,6 @@ func (*Package) Bindings() []axon.Binding {
 		axon.Bind(MappingServiceKey).To().StructPtr(new(mappingServiceImpl)),
 		axon.Bind(ConfigServiceKey).To().StructPtr(new(configServiceImpl)),
 		axon.Bind(GitServiceKey).To().StructPtr(new(gitServiceImpl)),
-		axon.Bind(ConfigWsServiceKey).To().StructPtr(new(configWsServiceImpl)),
+		axon.Bind(ConfigPollerServiceKey).To().StructPtr(new(configPollerServiceImpl)),
 	}
 }
