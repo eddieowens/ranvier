@@ -1,10 +1,10 @@
 package ws
 
 import (
-	"fmt"
 	"github.com/eddieowens/axon"
 	"github.com/eddieowens/ranvier/server/app/pubsub"
 	"github.com/gorilla/websocket"
+	"github.com/sirupsen/logrus"
 	"net/http"
 )
 
@@ -27,10 +27,12 @@ func (w *websocketImpl) Connect(topic string, wr http.ResponseWriter, req *http.
 
 	defer ws.Close()
 
+	logrus.WithField("topic", topic).Debug("Establishing websocket connection")
 	for c := range w.PubSub.Subscribe(topic) {
+		logrus.WithField("topic", topic).WithField("event", c).Debug("Sending websocket event")
 		err = ws.WriteJSON(c)
 		if err != nil {
-			fmt.Println(err)
+			logrus.WithError(err).Error("Failed to write to message to topic")
 			continue
 		}
 	}

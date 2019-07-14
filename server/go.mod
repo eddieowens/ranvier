@@ -20,6 +20,8 @@ require (
 	github.com/oliveagle/jsonpath v0.0.0-20180606110733-2e52cf6e6852
 	github.com/opencontainers/go-digest v1.0.0-rc1 // indirect
 	github.com/opencontainers/image-spec v1.0.1
+	github.com/pkg/errors v0.8.1
+	github.com/sirupsen/logrus v1.4.2
 	github.com/spf13/viper v1.3.2
 	github.com/stretchr/testify v1.3.0
 	github.com/swaggo/echo-swagger v0.0.0-20190329130007-1219b460a043

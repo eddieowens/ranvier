@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"github.com/eddieowens/ranvier/server/app/model"
+	"github.com/sirupsen/logrus"
 	"gopkg.in/src-d/go-git.v4"
 	"gopkg.in/src-d/go-git.v4/plumbing"
 	"gopkg.in/src-d/go-git.v4/plumbing/object"
@@ -29,7 +30,7 @@ func (g *gitServiceImpl) DiffRemote(repo *git.Repository, branch string) ([]mode
 	err := repo.Fetch(&git.FetchOptions{
 		Auth: g.AuthMethod,
 	})
-	if err != nil && err != git.NoErrAlreadyUpToDate {
+	if err != nil {
 		return nil, err
 	}
 
@@ -109,6 +110,10 @@ func (g *gitServiceImpl) DiffRemote(repo *git.Repository, branch string) ([]mode
 }
 
 func (g *gitServiceImpl) Clone(remote, branch, directory string) (*git.Repository, error) {
+	logrus.WithField("remote", remote).
+		WithField("branch", branch).
+		WithField("clone_directory", directory).
+		Debug("Cloning repo")
 	repo, err := git.PlainClone(directory, false, &git.CloneOptions{
 		URL:           remote,
 		RemoteName:    remoteName,
@@ -117,6 +122,7 @@ func (g *gitServiceImpl) Clone(remote, branch, directory string) (*git.Repositor
 	})
 
 	if err == git.ErrRepositoryAlreadyExists {
+		logrus.Debug("Failed to clone as repo is already present")
 		return git.PlainOpen(directory)
 	} else if err != nil {
 		return nil, err

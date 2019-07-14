@@ -10,6 +10,7 @@ import (
 	"github.com/eddieowens/ranvier/server/app/swagger"
 	"github.com/labstack/echo"
 	"github.com/labstack/echo/middleware"
+	log "github.com/sirupsen/logrus"
 	"regexp"
 	"strings"
 )
@@ -30,15 +31,50 @@ type appImpl struct {
 func (a *appImpl) Run() {
 	e := echo.New()
 
-	e.Use(middleware.Logger(), middleware.Recover())
+	format := &log.JSONFormatter{
+		TimestampFormat: a.Config.Log.TimeFormat,
+	}
+
+	log.SetFormatter(format)
+	log.SetLevel(resolveLevel(a.Config.Log.Level))
+
+	if log.GetLevel() >= log.DebugLevel {
+		e.Use(middleware.Logger(), middleware.Recover())
+	}
+
+	e.HideBanner = true
+	e.HidePort = true
 	e.GET("/swagger/*", swagger.Handler())
 
 	a.Router.RegisterAll(e)
 
 	err := a.GitPoller.Start(a.ConfigWsService.OnUpdate, a.ConfigWsService.OnStart, *regexp.MustCompile(fmt.Sprintf(".+(%s)", strings.Join(domain.SupportedFileTypes, "|"))))
 	if err != nil {
-		e.Logger.Fatal(err)
+		log.Fatal(err)
 	}
 
-	e.Logger.Fatal(e.Start(fmt.Sprintf(":%d", a.Config.Server.Port)))
+	log.Info("starting server on port ", a.Config.Server.Port)
+	log.Fatal(e.Start(fmt.Sprintf(":%d", a.Config.Server.Port)))
+}
+
+func resolveLevel(level string) log.Level {
+	switch strings.ToLower(level) {
+	case "trace":
+		return log.TraceLevel
+	case "debug":
+		return log.DebugLevel
+	case "info":
+		return log.InfoLevel
+	case "warn", "warning":
+		return log.WarnLevel
+	case "error":
+		return log.ErrorLevel
+	case "fatal":
+		return log.FatalLevel
+	case "panic":
+		return log.PanicLevel
+	default:
+		log.Info(level, " is not a valid log level. Setting to info.")
+		return log.InfoLevel
+	}
 }

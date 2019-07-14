@@ -18,6 +18,12 @@ type Config struct {
 	Git      Git      `mapstructure:"git"`
 	Compiler Compiler `mapstructure:"compiler"`
 	Server   Server   `mapstructure:"server"`
+	Log      Log      `mapstructure:"log"`
+}
+
+type Log struct {
+	Level      string `mapstructure:"level"`
+	TimeFormat string `mapstructure:"timeformat"`
 }
 
 type Git struct {

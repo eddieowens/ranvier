@@ -1,10 +1,10 @@
 package poller
 
 import (
-	"fmt"
 	"github.com/eddieowens/ranvier/server/app/configuration"
 	"github.com/eddieowens/ranvier/server/app/model"
 	"github.com/eddieowens/ranvier/server/app/service"
+	log "github.com/sirupsen/logrus"
 	"gopkg.in/src-d/go-git.v4"
 	"io"
 	"os"
@@ -62,9 +62,16 @@ func (g *gitPollerImpl) Start(onUpdate OnUpdateFunction, onStart OnStartFunc, fi
 			case <-ticker.C:
 				changes, err := g.GitService.DiffRemote(g.repo, g.branchName)
 				if err != nil {
-					fmt.Println(err)
+					if err == git.NoErrAlreadyUpToDate {
+						log.Debug("No changes detected in git")
+					} else {
+						log.WithError(err).Error()
+					}
 					continue
 				}
+				log.WithField("changes", changes).
+					WithField("repo", g.Config.Git.Remote).
+					Debug("Detected changes in git")
 				changes = g.filter(changes)
 				if len(changes) > 0 {
 					for _, c := range changes {
