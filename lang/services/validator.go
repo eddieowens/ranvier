@@ -36,7 +36,7 @@ func (v *validatorImpl) Schema(manifest *domain.Schema) error {
 	return err
 }
 
-func validatorFactory(inj axon.Injector, _ axon.Args) axon.Instance {
+func ValidatorFactory(inj axon.Injector, _ axon.Args) axon.Instance {
 	v := validator.New()
 
 	filer := inj.GetStructPtr(FilerKey).(commons.Filer)

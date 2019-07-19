@@ -19,6 +19,6 @@ func (*Package) Bindings() []axon.Binding {
 		axon.Bind(FileServiceKey).To().Instance(axon.StructPtr(new(fileServiceImpl))),
 		axon.Bind(JsonMergerKey).To().Instance(axon.StructPtr(commons.NewJsonMerger())),
 		axon.Bind(FilerKey).To().Instance(axon.StructPtr(commons.NewFiler())),
-		axon.Bind(ValidatorKey).To().Factory(validatorFactory).WithoutArgs(),
+		axon.Bind(ValidatorKey).To().Factory(ValidatorFactory).WithoutArgs(),
 	}
 }
