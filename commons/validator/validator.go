@@ -2,6 +2,7 @@ package validator
 
 import (
 	"github.com/eddieowens/axon"
+	"github.com/eddieowens/ranvier/commons"
 	"gopkg.in/go-playground/validator.v9"
 	"os"
 	"path/filepath"
@@ -50,7 +51,8 @@ func Factory(_ axon.Injector, _ axon.Args) axon.Instance {
 		if ext != "" {
 			ext = ext[1:]
 		}
-		return strings.Contains(fl.Param(), ext)
+		params := strings.Split(fl.Param(), " ")
+		return commons.StringIncludes(ext, params)
 	})
 	if err != nil {
 		panic(err)

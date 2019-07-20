@@ -93,6 +93,31 @@ func (v *ValidatorTest) TestExtInvalidFileNotFound() {
 	v.EqualError(err, expected)
 }
 
+func (v *ValidatorTest) TestExtInvalidPartial() {
+	// -- Given
+	//
+	type s struct {
+		Ext string `validate:"ext=json toml"`
+	}
+
+	fp := path.Join(os.TempDir(), "what.jso")
+	_, _ = os.Create(fp)
+	defer os.Remove(fp)
+
+	given := s{
+		Ext: fp,
+	}
+	expected := fmt.Sprintf("%s does not have a valid file extension. Valid extensions are json toml.", fp)
+
+	// -- When
+	//
+	err := v.validator.Struct(given)
+
+	// -- Then
+	//
+	v.EqualError(err, expected)
+}
+
 func TestValidatorTest(t *testing.T) {
 	suite.Run(t, new(ValidatorTest))
 }
