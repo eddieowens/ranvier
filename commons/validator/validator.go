@@ -9,8 +9,6 @@ import (
 	"strings"
 )
 
-const ValidatorKey = "Validator"
-
 var dns1123Regexp = regexp.MustCompile("[a-z0-9]([-a-z0-9]*[a-z0-9])?")
 
 type Validator interface {
