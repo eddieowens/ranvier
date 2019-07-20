@@ -19,11 +19,15 @@ type validatorImpl struct {
 	validator *validator.Validate
 }
 
-func (v *validatorImpl) Struct(strct interface{}) error {
-	return v.validator.Struct(strct)
+func (v *validatorImpl) Struct(s interface{}) error {
+	err := v.validator.Struct(s)
+	if err != nil {
+		return newValidationErrorFromValidator(err.(validator.ValidationErrors))
+	}
+	return nil
 }
 
-func ValidatorFactory(_ axon.Injector, _ axon.Args) axon.Instance {
+func Factory(_ axon.Injector, _ axon.Args) axon.Instance {
 	v := validator.New()
 
 	err := v.RegisterValidation("file", func(fl validator.FieldLevel) bool {
@@ -42,7 +46,11 @@ func ValidatorFactory(_ axon.Injector, _ axon.Args) axon.Instance {
 	}
 
 	err = v.RegisterValidation("ext", func(fl validator.FieldLevel) bool {
-		return strings.Contains(fl.Param(), filepath.Ext(fl.Field().String()))
+		ext := filepath.Ext(fl.Field().String())
+		if ext != "" {
+			ext = ext[1:]
+		}
+		return strings.Contains(fl.Param(), ext)
 	})
 	if err != nil {
 		panic(err)

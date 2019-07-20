@@ -7,8 +7,6 @@ import (
 	"strings"
 )
 
-const errorTemplate = "Failed to compile %s due to field %s: %s"
-
 type errorMessageFactory func(e validator.FieldError) string
 
 var errorMap = map[string]errorMessageFactory{
@@ -16,7 +14,7 @@ var errorMap = map[string]errorMessageFactory{
 		return fmt.Sprintf("%s is invalid. Valid values are %s.", e.Value(), e.Param())
 	},
 	"ext": func(e validator.FieldError) string {
-		return fmt.Sprintf("%s is not a valid file extension. Valid extensions are %s.", e.Value(), e.Param())
+		return fmt.Sprintf("%s does not have a valid file extension. Valid extensions are %s.", e.Value(), e.Param())
 	},
 	"file": func(e validator.FieldError) string {
 		return fmt.Sprintf("Could not find file %s.", e.Value())
@@ -51,7 +49,7 @@ func (v *ValidationError) AddError(e error) {
 	v.errorStrings = append(v.errorStrings, e.Error())
 }
 
-func NewValidationError(errors ...error) error {
+func newValidationError(errors ...error) error {
 	errs := make([]error, len(errors))
 	errsStr := make([]string, len(errors))
 
@@ -66,20 +64,19 @@ func NewValidationError(errors ...error) error {
 	}
 }
 
-func NewSchemaValidationError(errs validator.ValidationErrors, file string) error {
+func newValidationErrorFromValidator(errs validator.ValidationErrors) error {
 	eSlice := make([]error, len(errs))
 	for i, es := range errs {
-		eSlice[i] = errors.New(validationErrorMsg(es, file))
+		eSlice[i] = errors.New(validationErrorMsg(es))
 	}
-	return NewValidationError(eSlice...)
+	return newValidationError(eSlice...)
 }
 
-func validationErrorMsg(f validator.FieldError, file string) string {
-	field := strings.ToLower(f.Field())
+func validationErrorMsg(f validator.FieldError) string {
 	if v, ok := errorMap[f.Tag()]; ok {
-		return fmt.Sprintf(errorTemplate, file, field, v(f))
+		return v(f)
 	} else {
 		def := errorMap["default"]
-		return fmt.Sprintf(errorTemplate, file, field, def(f))
+		return def(f)
 	}
 }
