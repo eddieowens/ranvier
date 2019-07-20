@@ -3,7 +3,6 @@ package validator
 import (
 	"errors"
 	"fmt"
-	"github.com/eddieowens/ranvier/lang/domain"
 	"gopkg.in/go-playground/validator.v9"
 	"strings"
 )
@@ -14,7 +13,10 @@ type errorMessageFactory func(e validator.FieldError) string
 
 var errorMap = map[string]errorMessageFactory{
 	"oneof": func(e validator.FieldError) string {
-		return fmt.Sprintf("%s is invalid. Valid values are %s.", e.Value(), strings.Join(strings.Split(e.Param(), ","), ", "))
+		return fmt.Sprintf("%s is invalid. Valid values are %s.", e.Value(), e.Param())
+	},
+	"ext": func(e validator.FieldError) string {
+		return fmt.Sprintf("%s is not a valid file extension. Valid extensions are %s.", e.Value(), e.Param())
 	},
 	"file": func(e validator.FieldError) string {
 		return fmt.Sprintf("Could not find file %s.", e.Value())

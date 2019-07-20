@@ -4,7 +4,9 @@ import (
 	"github.com/eddieowens/axon"
 	"gopkg.in/go-playground/validator.v9"
 	"os"
+	"path/filepath"
 	"regexp"
+	"strings"
 )
 
 const ValidatorKey = "Validator"
@@ -36,6 +38,13 @@ func ValidatorFactory(_ axon.Injector, _ axon.Args) axon.Instance {
 
 	err = v.RegisterValidation("dns_1123", func(fl validator.FieldLevel) bool {
 		return dns1123Regexp.MatchString(fl.Field().String())
+	})
+	if err != nil {
+		panic(err)
+	}
+
+	err = v.RegisterValidation("ext", func(fl validator.FieldLevel) bool {
+		return strings.Contains(fl.Param(), filepath.Ext(fl.Field().String()))
 	})
 	if err != nil {
 		panic(err)
