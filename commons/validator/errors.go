@@ -1,4 +1,4 @@
-package services
+package validator
 
 import (
 	"errors"
@@ -13,10 +13,10 @@ const errorTemplate = "Failed to compile %s due to field %s: %s"
 type errorMessageFactory func(e validator.FieldError) string
 
 var errorMap = map[string]errorMessageFactory{
-	"ext": func(e validator.FieldError) string {
-		return fmt.Sprintf("Extension %s is invalid. Valid extensions are %s.", e.Value(), strings.Join(domain.SupportedFileTypes, ", "))
+	"oneof": func(e validator.FieldError) string {
+		return fmt.Sprintf("%s is invalid. Valid values are %s.", e.Value(), strings.Join(strings.Split(e.Param(), ","), ", "))
 	},
-	"filepath": func(e validator.FieldError) string {
+	"file": func(e validator.FieldError) string {
 		return fmt.Sprintf("Could not find file %s.", e.Value())
 	},
 	"required": func(e validator.FieldError) string {
@@ -27,7 +27,7 @@ var errorMap = map[string]errorMessageFactory{
 			"character and can only contain '-' special charcaters.", e.Value(), strings.ToLower(e.Field()))
 	},
 	"default": func(e validator.FieldError) string {
-		return fmt.Sprintf("Failed validation for the '%s' tag", e.Tag())
+		return fmt.Sprintf("%s is an invalid %s", e.Value(), strings.ToLower(e.Field()))
 	},
 }
 

@@ -4,8 +4,8 @@ go 1.12
 
 require (
 	github.com/Jeffail/gabs v1.3.1
+	github.com/eddieowens/axon v0.6.0 // indirect
+	github.com/eddieowens/ranvier/lang v0.0.0-20190719061758-267f8e54e7f5 // indirect
 	github.com/imdario/mergo v0.3.7
-	github.com/kr/pretty v0.1.0 // indirect
-	gopkg.in/check.v1 v1.0.0-20180628173108-788fd7840127 // indirect
-	gopkg.in/yaml.v2 v2.2.2 // indirect
+	gopkg.in/go-playground/validator.v9 v9.29.0
 )
