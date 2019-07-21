@@ -2,6 +2,7 @@ package compiler
 
 import (
 	"github.com/eddieowens/ranvier/commons"
+	"github.com/eddieowens/ranvier/commons/validator"
 	"github.com/eddieowens/ranvier/lang/domain"
 	"github.com/eddieowens/ranvier/lang/semantics"
 	"github.com/eddieowens/ranvier/lang/services"
@@ -30,7 +31,7 @@ type CompileOptions struct {
 type ParseOptions struct {
 	// The root directory of the file to parse which determines the prepended name of the file. The file that is being
 	// parsed must lie within this directory.
-	Root string `validate:"required,filepath"`
+	Root string `validate:"required,file"`
 }
 
 type Compiler interface {
@@ -46,7 +47,7 @@ type compilerImpl struct {
 	FileCollector    services.FileCollector `inject:"FileCollector"`
 	FileService      services.FileService   `inject:"FileService"`
 	Packer           SchemaPacker           `inject:"SchemaPacker"`
-	ValidatorService services.Validator     `inject:"Validator"`
+	ValidatorService validator.Validator    `inject:"Validator"`
 }
 
 func (c *compilerImpl) CompileAll(path string, options CompileAllOptions) (SchemaPack, error) {

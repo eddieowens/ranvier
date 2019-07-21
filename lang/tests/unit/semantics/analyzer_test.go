@@ -1,10 +1,9 @@
 package semantics
 
 import (
-	"errors"
 	"fmt"
 	"github.com/eddieowens/ranvier/lang/domain"
-	"github.com/eddieowens/ranvier/lang/services"
+	"github.com/eddieowens/ranvier/lang/semantics"
 	"github.com/eddieowens/ranvier/lang/tests/unit"
 	"github.com/stretchr/testify/suite"
 	"path"
@@ -13,11 +12,11 @@ import (
 
 type ValidatorTest struct {
 	unit.Unit
-	validator services.Validator
+	analyzer semantics.Analyzer
 }
 
 func (v *ValidatorTest) SetupTest() {
-	v.validator = v.Injector.Get(services.ValidatorKey).GetStructPtr().(services.Validator)
+	v.analyzer = v.Injector.Get(semantics.AnalyzerKey).GetStructPtr().(semantics.Analyzer)
 }
 
 func (v *ValidatorTest) TestValidExtends() {
@@ -34,7 +33,7 @@ func (v *ValidatorTest) TestValidExtends() {
 
 	// -- When
 	//
-	err := v.validator.Schema(&m)
+	err := v.analyzer.Semantics(&m)
 
 	// -- Then
 	//
@@ -54,21 +53,16 @@ func (v *ValidatorTest) TestInvalidExtendsExt() {
 		Type:   domain.Json,
 	}
 
+	expectedErrMsg := fmt.Sprintf("Failed to compile made-up.json due to field extends[0]: %s/final.jso does not "+
+		"have a valid file extension. Valid extensions are json toml yaml yml.", v.Resources())
+
 	// -- When
 	//
-	err := v.validator.Schema(&m)
+	err := v.analyzer.Semantics(&m)
 
 	// -- Then
 	//
-	expected := []error{
-		errors.New(
-			fmt.Sprintf("Failed to compile made-up.json due to field extends[0]: Extension %s/final.jso is invalid. Valid extensions are toml, json, yaml, yml.", v.Resources()),
-		),
-	}
-	if v.Error(err) {
-		errs := err.(*services.ValidationError)
-		v.ElementsMatch(expected, errs.Errors())
-	}
+	v.EqualError(err, expectedErrMsg)
 }
 
 func (v *ValidatorTest) TestInvalidFilepath() {
@@ -84,22 +78,15 @@ func (v *ValidatorTest) TestInvalidFilepath() {
 		Type:   domain.Json,
 	}
 
+	expectedErrMsg := fmt.Sprintf("Failed to compile made-up.yml due to field extends[0]: Could not find file %s/not-exist.yml.", v.Resources())
+
 	// -- When
 	//
-	err := v.validator.Schema(&m)
+	err := v.analyzer.Semantics(&m)
 
 	// -- Then
 	//
-	expected := []error{
-		errors.New(
-			fmt.Sprintf("Failed to compile made-up.yml due to field extends[0]: Could not find file %s/not-exist.yml.", v.Resources()),
-		),
-	}
-
-	if v.Error(err) {
-		errs := err.(*services.ValidationError)
-		v.ElementsMatch(expected, errs.Errors())
-	}
+	v.EqualError(err, expectedErrMsg)
 }
 
 func TestValidator(t *testing.T) {

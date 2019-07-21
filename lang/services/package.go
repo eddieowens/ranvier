@@ -3,6 +3,7 @@ package services
 import (
 	"github.com/eddieowens/axon"
 	"github.com/eddieowens/ranvier/commons"
+	"github.com/eddieowens/ranvier/commons/validator"
 )
 
 const JsonMergerKey = "JsonMerger"
@@ -19,6 +20,6 @@ func (*Package) Bindings() []axon.Binding {
 		axon.Bind(FileServiceKey).To().Instance(axon.StructPtr(new(fileServiceImpl))),
 		axon.Bind(JsonMergerKey).To().Instance(axon.StructPtr(commons.NewJsonMerger())),
 		axon.Bind(FilerKey).To().Instance(axon.StructPtr(commons.NewFiler())),
-		axon.Bind(ValidatorKey).To().Factory(ValidatorFactory).WithoutArgs(),
+		axon.Bind(validator.Key).To().Factory(validator.Factory).WithoutArgs(),
 	}
 }

@@ -1,8 +1,10 @@
 package semantics
 
 import (
+	"fmt"
+	"github.com/eddieowens/ranvier/commons/validator"
 	"github.com/eddieowens/ranvier/lang/domain"
-	"github.com/eddieowens/ranvier/lang/services"
+	"strings"
 )
 
 const AnalyzerKey = "Analyzer"
@@ -12,9 +14,23 @@ type Analyzer interface {
 }
 
 type analyzer struct {
-	Validator services.Validator `inject:"Validator"`
+	Validator validator.Validator `inject:"Validator"`
 }
 
 func (s *analyzer) Semantics(manifest *domain.Schema) error {
-	return s.Validator.Schema(manifest)
+	err := s.Validator.Struct(manifest)
+	if err != nil {
+		if vErrs, ok := err.(validator.ValidationErrors); ok {
+			for i, v := range vErrs {
+				vErrs[i].Msg = fmt.Sprintf(
+					"Failed to compile %s due to field %s: %s",
+					manifest.Path,
+					strings.ToLower(v.OriginalError.StructField()),
+					v.Msg,
+				)
+			}
+		}
+		return err
+	}
+	return nil
 }

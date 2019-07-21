@@ -12,7 +12,7 @@ type Schema struct {
 
 	// The path relative to the root path of the config. The root path of the config is typically the root path of the git
 	// repo. These fields cannot contain the '.' or '..' characters.
-	Extends []string `json:"extends" validate:"dive,ext,filepath"`
+	Extends []string `json:"extends" validate:"dive,ext=json toml yaml yml,file"`
 
 	// The user's own config. This can be any data the user wishes to use.
 	Config commons.Raw `json:"config"`
