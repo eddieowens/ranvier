@@ -118,6 +118,66 @@ func (v *ValidatorTest) TestExtInvalidPartial() {
 	v.EqualError(err, expected)
 }
 
+func (v *ValidatorTest) TestOverrideError() {
+	// -- Given
+	//
+	type s struct {
+		Ext string `validate:"ext=json toml"`
+	}
+
+	fp := path.Join(os.TempDir(), "what.jso")
+	_, _ = os.Create(fp)
+	defer os.Remove(fp)
+
+	given := s{
+		Ext: fp,
+	}
+	expected := fmt.Sprintf("%s does not have a valid file extension. Valid extensions are json toml. extra text", fp)
+
+	v.validator.OnError(func(validationError *ValidationError) {
+		validationError.Msg += " extra text"
+	}, "ext")
+
+	// -- When
+	//
+	err := v.validator.Struct(given)
+
+	// -- Then
+	//
+	v.EqualError(err, expected)
+}
+
+func (v *ValidatorTest) TestOverrideErrorAll() {
+	// -- Given
+	//
+	type s struct {
+		Ext  string `validate:"ext=json toml"`
+		File string `validate:"required"`
+	}
+
+	fp := path.Join(os.TempDir(), "what.jso")
+	_, _ = os.Create(fp)
+	defer os.Remove(fp)
+
+	given := s{
+		Ext: fp,
+	}
+	expected := fmt.Sprintf("%s does not have a valid file extension. Valid extensions are json toml. extra text\n"+
+		"file is required. extra text", fp)
+
+	v.validator.OnError(func(validationError *ValidationError) {
+		validationError.Msg += " extra text"
+	})
+
+	// -- When
+	//
+	err := v.validator.Struct(given)
+
+	// -- Then
+	//
+	v.EqualError(err, expected)
+}
+
 func TestValidatorTest(t *testing.T) {
 	suite.Run(t, new(ValidatorTest))
 }
