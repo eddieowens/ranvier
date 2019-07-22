@@ -26,6 +26,7 @@ type CompileOptions struct {
 	// The directory that the file will be output to. If the directory does not exist, it will be created.
 	OutputDirectory string `validate:"required_without=DryRun"`
 	DryRun          bool
+	Type            string `validate:"omitempty,oneof=json toml yaml yml"`
 }
 
 type ParseOptions struct {
@@ -139,14 +140,14 @@ func (c *compilerImpl) Parse(fp string, options ParseOptions) (*domain.Schema, e
 
 	schma.Config = config
 	schma.Path = schemaPath
-	if schma.Type == "" {
-		schma.Type = "json"
-	}
 
 	return &schma, nil
 }
 
 func (c *compilerImpl) Compile(fp string, options CompileOptions) (*domain.Schema, error) {
+	if options.Type == "" {
+		options.Type = domain.Json
+	}
 	if err := c.ValidatorService.Struct(options); err != nil {
 		return nil, err
 	}
@@ -161,7 +162,8 @@ func (c *compilerImpl) Compile(fp string, options CompileOptions) (*domain.Schem
 	}
 
 	if !options.DryRun {
-		err := c.FileService.ToFile(options.OutputDirectory, m)
+
+		err := c.FileService.ToFile(options.OutputDirectory, options.Type, m)
 		if err != nil {
 			return nil, err
 		}

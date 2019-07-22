@@ -73,18 +73,15 @@ func (c *CompilerTest) TestCompileAll() {
 			Name:    "users-prod",
 			Extends: []string{path.Join(fp, "prod.json")},
 			Path:    path.Join(fp, "users", "prod.json"),
-			Type:    "json",
 		},
 		"users-staging": {
 			Name:    "users-staging",
 			Extends: []string{path.Join(fp, "staging.json")},
 			Path:    path.Join(fp, "users", "staging.json"),
-			Type:    "yaml",
 		},
 		"users-users": {
 			Name: "users-users",
 			Path: path.Join(fp, "users", "users.json"),
-			Type: "toml",
 		},
 	}
 
@@ -106,7 +103,7 @@ func (c *CompilerTest) TestCompileAll() {
 
 			c.Equal(v, actual)
 			c.Equal(expectedConfig[k], actualConfig)
-			c.EqualConfigFromFile(path.Join(outputDir, fmt.Sprintf("%s.%s", v.Name, v.Type)), expectedConfig[k])
+			c.EqualConfigFromFile(path.Join(outputDir, fmt.Sprintf("%s.json", v.Name)), expectedConfig[k])
 		}
 	}
 }
@@ -129,7 +126,6 @@ func (c *CompilerTest) TestParse() {
 	expected := domain.Schema{
 		Name:   "users-users",
 		Path:   path.Join(fp, "users", "users.json"),
-		Type:   "toml",
 		Config: d,
 	}
 

@@ -17,14 +17,6 @@ type Schema struct {
 	// The user's own config. This can be any data the user wishes to use.
 	Config commons.Raw `json:"config"`
 
-	// The config file extension type that will be output after compilation. Valid file extensions are
-	//   * yaml
-	//   * yml
-	//   * toml
-	//   * json
-	// Defaults to json.
-	Type string `json:"type" validate:"oneof=yaml yml toml json"`
-
 	// The fullfile path to the file from which this schema was created. Ignored if specified by user as it is only meant
 	// to be used internally.
 	Path string `json:"-"`

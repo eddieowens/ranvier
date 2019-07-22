@@ -28,7 +28,6 @@ func (v *ValidatorTest) TestValidExtends() {
 			path.Join(v.Resources(), "final.json"),
 		},
 		Config: []byte(""),
-		Type:   domain.Json,
 	}
 
 	// -- When
@@ -50,7 +49,6 @@ func (v *ValidatorTest) TestInvalidExtendsExt() {
 		},
 		Config: []byte(""),
 		Path:   "made-up.json",
-		Type:   domain.Json,
 	}
 
 	expectedErrMsg := fmt.Sprintf("Failed to compile made-up.json due to field extends[0]: %s/final.jso does not "+
@@ -75,7 +73,6 @@ func (v *ValidatorTest) TestInvalidFilepath() {
 		},
 		Config: []byte(""),
 		Path:   "made-up.yml",
-		Type:   domain.Json,
 	}
 
 	expectedErrMsg := fmt.Sprintf("Failed to compile made-up.yml due to field extends[0]: Could not find file %s/not-exist.yml.", v.Resources())

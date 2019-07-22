@@ -17,7 +17,7 @@ import (
 const FileServiceKey = "FileService"
 
 type FileService interface {
-	ToFile(directory string, config *domain.Schema) error
+	ToFile(directory, fileExt string, config *domain.Schema) error
 
 	// Removes the root path from the filepath (fp) if it's present. If the root path cannot be found in the fp, the fp
 	// is returned.
@@ -46,7 +46,7 @@ func (f *fileServiceImpl) SubtractPath(root, fp string) string {
 	return p
 }
 
-func (f *fileServiceImpl) ToFile(directory string, config *domain.Schema) error {
+func (f *fileServiceImpl) ToFile(directory, fileExt string, config *domain.Schema) error {
 	if config == nil {
 		return errors.New("schema cannot be nil")
 	}
@@ -60,7 +60,7 @@ func (f *fileServiceImpl) ToFile(directory string, config *domain.Schema) error 
 	}
 
 	var data []byte
-	switch config.Type {
+	switch fileExt {
 	case "toml":
 		var buf bytes.Buffer
 		err = toml.NewEncoder(&buf).Encode(jsonConfig)
@@ -75,7 +75,7 @@ func (f *fileServiceImpl) ToFile(directory string, config *domain.Schema) error 
 		return err
 	}
 
-	filename := fmt.Sprintf("%s.%s", config.Name, config.Type)
+	filename := fmt.Sprintf("%s.%s", config.Name, fileExt)
 	err = os.MkdirAll(directory, os.ModePerm)
 	if err != nil {
 		return err
