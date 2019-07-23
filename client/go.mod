@@ -1,4 +1,4 @@
-module github.com/eddieowens/client
+module github.com/eddieowens/ranvier/client
 
 go 1.12
 
