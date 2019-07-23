@@ -1,4 +1,4 @@
-module github.com/eddieowens/go-client
+module github.com/eddieowens/client
 
 go 1.12
 
