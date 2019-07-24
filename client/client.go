@@ -35,7 +35,7 @@ type ConnOptions struct {
 	// updated, the Connection will receive a message of the new configuration.
 	Names []string
 
-	// If the websocket were to disconnect, how long until a retry is attempted? Default is 30 seconds.
+	// The amount of time to wait between connection retries if the websocket were to disconnect. Defaults to 30 seconds.
 	RetryInterval time.Duration
 }
 
@@ -52,7 +52,13 @@ type Connection struct {
 func NewClient(options *ClientOptions) (Client, error) {
 	_, _, err := net.SplitHostPort(options.Hostname)
 	if err != nil {
-		return nil, err
+		if v, ok := err.(*net.AddrError); ok {
+			if v.Err != "missing port in address" {
+				return nil, err
+			}
+		} else {
+			return nil, err
+		}
 	}
 	hostname := options.Hostname
 
