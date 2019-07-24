@@ -26,14 +26,22 @@ spec:
           ports:
             - containerPort: 8080
           env:
-            - name: RANVIER_GIT_USERNAME
-              value: <git username>
-            - name: RANVIER_GIT_PASSWORD
-              valueFrom:
-                secretKeyRef:
-                  key: <key here>
-                  name: <secret name here>
+            - name: RANVIER_GIT_SSHKEY
+              value: /.ssh/id_rsa
+          volumeMounts:
+            - mountPath: /.ssh/id_rsa
+              subPath: id_rsa
+              name: ssh-key
+              readOnly: true
       restartPolicy: Always
+      volumes:
+        - name: ssh-key
+          secret:
+            secretName: git-access
+            optional: false
+            items:
+              - key: ssh-key
+                path: id_rsa
   selector:
     matchLabels:
       app: ranvier

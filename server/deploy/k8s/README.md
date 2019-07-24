@@ -82,7 +82,7 @@ data:
 ```
 Or by `kubectl`
 ```bash
-kubectl create secret generic git-access --from-file=ssh-key=~/.ssh/id_rsa
+kubectl create secret generic git-access --from-file=ssh-key=$HOME/.ssh/id_rsa
 ```
 
 `Ranvier` will now be authorized to poll your configuration Git repository!

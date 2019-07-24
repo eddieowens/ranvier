@@ -22,6 +22,10 @@ Run with username/password
 docker run -p 8080:8080 -e RANVIER_GIT_USERNAME=eddieowens -e RANVIER_GIT_PASSWORD=<password> edwardrowens/ranvier
 ```
 
+#### Kubernetes
+* [Helm](deploy/helm/README.md)
+* [Native](deploy/k8s/README.md)
+
 ### Configuration
 The configuration for the server is handled via files in `config`. The `config.yml` file
 is loaded first and the subsequent `ENV` specific file is merged in over taking precedence
