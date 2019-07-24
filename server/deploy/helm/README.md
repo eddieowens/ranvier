@@ -1,10 +1,10 @@
 # Helm chart for Ranvier
 `Ranvier` requires Git access authorized either by SSH or by username/password. 
 
-## Using password
+## Using username/password
 To install `Ranvier` via password auth, run
 ```bash
-helm install --set password=<your git password> ./ranvier
+helm install --set password=<your git password> --set username=<your git username> ./ranvier
 ```
 ## Using SSH
 Due to limitations in Helm, it is not possible to read an SSH key from a local directory
@@ -18,7 +18,10 @@ type: Opaque
 data:
   ssh-key: <base64 encoded contents of your private SSH key for git>
 ```
-_Note: Both the `name` and `ssh_key` fields are important and should not be changed_
+Or create it via `kubectl`
+```bash
+kubectl create secret generic git-access --from-file=ssh-key=$HOME/.ssh/id_rsa
+```
 
 Then run the Helm install
 ```bash

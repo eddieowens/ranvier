@@ -1,10 +1,15 @@
 apiVersion: v1
 kind: Service
 metadata:
-  name: raniver
+  name: ranvier
 spec:
   selector:
     app: ranvier
   ports:
-    - port: {{.Values.container.port}}
+    - name: http
+      port: 80
+      targetPort: {{.Values.container.port}}
+    - name: https
+      port: 443
+      targetPort: {{.Values.container.port}}
   type: {{.Values.svc.type}}
