@@ -1,5 +1,6 @@
 # Helm chart for Ranvier
-`Ranvier` requires Git access authorized either by SSH or by username/password. 
+Contains all of the files required to run a node of `Ranvier` in dev mode in k8s via Helm. Requires a secret is created 
+containing either your git password or an SSH key for git. 
 
 ## Using username/password
 To install `Ranvier` via password auth, run
@@ -27,3 +28,7 @@ Then run the Helm install
 ```bash
 helm install --set ssh_key=true ./ranvier
 ```
+
+`Ranvier` will now be authorized to poll your configuration Git repository! To run Ranvier in non-dev mode, target a 
+specific git repo/branch, or to modify where files are stored, see the 
+[valid env vars](https://github.com/eddieowens/ranvier/tree/master/server#valid-env-vars).

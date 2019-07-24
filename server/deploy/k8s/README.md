@@ -1,10 +1,10 @@
 # K8s Definitions for Ranvier
-Contains all of the files required to run a node of `Ranvier` in k8s. Requires
-a secret is created containing either your git password or an SSH key for git.
+Contains all of the files required to run a node of `Ranvier` in dev mode in k8s. Requires a secret is created 
+containing either your git password or an SSH key for git.
 
 ## Git access with username/password
-The `Ranvier` `Deployment` found in `deploy.yml` by default assumes a `Secret` is present
-in the same namespace containing the password as well as an associated username.
+The `Ranvier` `Deployment` found in `deploy.yml` by default assumes a `Secret` is present in the same namespace 
+containing the password as well as an associated username.
 
 1\. To create a secret for your password,
 ```yaml
@@ -35,9 +35,8 @@ data:
 
 ## Git access with SSH key
 To use an SSH key, 
-1. In `deploy.yml` remove the environment variables referencing `RANVIER_GIT_USERNAME`
-and `RANVIER_GIT_PASSWORD` and replace them with an `env` key of `RANVIER_GIT_SSHKEY`
-and a value of `/.ssh/id_rsa`.
+1. In `deploy.yml` remove the environment variables referencing `RANVIER_GIT_USERNAME` and `RANVIER_GIT_PASSWORD` and 
+replace them with an `env` key of `RANVIER_GIT_SSHKEY` and a value of `/.ssh/id_rsa`.
 ```yaml
 ...
   env:
@@ -85,4 +84,6 @@ Or by `kubectl`
 kubectl create secret generic git-access --from-file=ssh-key=$HOME/.ssh/id_rsa
 ```
 
-`Ranvier` will now be authorized to poll your configuration Git repository!
+`Ranvier` will now be authorized to poll your configuration Git repository! To run Ranvier in non-dev mode, target a 
+specific git repo/branch, or to modify where files are stored, see the 
+[valid env vars](https://github.com/eddieowens/ranvier/tree/master/server#valid-env-vars).
