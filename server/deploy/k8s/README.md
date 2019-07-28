@@ -83,7 +83,10 @@ Or by `kubectl`
 ```bash
 kubectl create secret generic git-access --from-file=ssh-key=$HOME/.ssh/id_rsa
 ```
+If you don't have an `id_rsa` key in your `~/.ssh` directory, see 
+[this](https://help.github.com/en/articles/generating-a-new-ssh-key-and-adding-it-to-the-ssh-agent) on how to make one.
 
-`Ranvier` will now be authorized to poll your configuration Git repository! To run Ranvier in non-dev mode, target a 
-specific git repo/branch, or to modify where files are stored, see the 
+`Ranvier` will now be authorized to poll your config's Git repository! By default, Ranvier will sync with the 
+[example repo](https://github.com/eddieowens/ranvier-config-example). To run Ranvier in non-dev mode, target **your** 
+git repo/branch, or to modify where files are stored, see the
 [valid env vars](https://github.com/eddieowens/ranvier/tree/master/server#valid-env-vars).

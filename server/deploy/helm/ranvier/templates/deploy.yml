@@ -36,10 +36,7 @@ spec:
               value: /.ssh/id_rsa
             {{else}}
             - name: RANVIER_GIT_PASSWORD
-              valueFrom:
-                secretKeyRef:
-                  key: password
-                  name: {{.Values.secret.git_access.name}}
+              value: {{.Values.password}}
             {{end}}
           {{- if .Values.ssh_key}}
           volumeMounts:

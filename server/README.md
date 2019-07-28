@@ -8,31 +8,18 @@ This directory houses all of the code to run the Ranvier server.
 go run main.go
 ```
 
-#### Docker
-Ranvier needs either an SSH key or a username/password to poll your git repository. If none
-are provided, the server will fail to start
-
-Run with SSH
-```bash
-docker run -p 8080:8080 -e RANVIER_GIT_SSHKEY=/.ssh/id_rsa -v ~/.ssh/id_rsa:/.ssh/id_rsa edwardrowens/ranvier-server
-```
-
-Run with username/password
-```bash
-docker run -p 8080:8080 -e RANVIER_GIT_USERNAME=eddieowens -e RANVIER_GIT_PASSWORD=<password> edwardrowens/ranvier
-```
-
-#### Kubernetes
+#### Containerized
+* [Docker](deploy/docker/README.md)
 * [Helm](deploy/helm/README.md)
-* [Native](deploy/k8s/README.md)
+* [Kubernetes](deploy/k8s/README.md)
 
 ### Configuration
 The configuration for the server is handled via files in `config`. The `config.yml` file
-is loaded first and the subsequent `ENV` specific file is merged in over taking precedence
+is loaded first and the subsequent `ENV` specific file is merged in taking precedence
 in the case of a key collision.
 
 #### Configure via environment variables
-All of the env vars are overrideable via environment variables and their name is automatically
+All of the config values are overrideable via environment variables and their name is automatically
 allocated. Every env var is prefixed with `RANVIER_` and every underscore represents a
 traversal down the object tree.
 
