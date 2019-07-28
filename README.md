@@ -14,15 +14,10 @@ files.
     * [Go](client/README.md)
     
 ## Packages included in Ranvier
-Ranvier consists of 5 packages
-1. [server](server/README.md)
-    * All code for the Ranvier server is stored here. The server handles polling the Git repo which houses your config
-    files.
-1. [client](client/README.md)
-    * The Go client used to communicate with the server. Many more languages soon to be supported.
-1. [lang](lang/README.md)
-    * The engine for compiling your schema config files to actual config files.
-1. [cli](ranvier/README.md)
-    * A tool for interacting with Ranvier and supporting local dev while using Ranvier.
-1. [commons](commons/README.md)
-    * All common code shared amongst all of the packages within Ranvier.
+Ranvier consists of the following packages
+1. [server](server/README.md) -  All code for the Ranvier server is stored here. The server handles polling the Git repo which houses your config
+    files as well as exposing that config to your applications.
+1. [client](client/README.md) - The Go client used to communicate with the server. Many more languages soon to be supported.
+1. [lang](lang/README.md) - The engine for compiling your schema config files to actual config files.
+1. [cli](ranvier/README.md) - A tool for interacting with Ranvier and supporting local dev while using Ranvier.
+1. [commons](commons/README.md) - All common code shared amongst all of the packages within Ranvier.
