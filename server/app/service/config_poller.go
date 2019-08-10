@@ -13,7 +13,8 @@ type ConfigPollerService interface {
 }
 
 type configPollerServiceImpl struct {
-	ConfigService ConfigService `inject:"ConfigService"`
+	ConfigService ConfigService           `inject:"ConfigService"`
+	ConfigDepMap  map[string]model.Config `inject:"ConfigDepMap"`
 }
 
 func (c *configPollerServiceImpl) OnUpdate(eventType model.EventType, filepath string) {
