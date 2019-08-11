@@ -2,6 +2,7 @@ package compiler
 
 import (
 	"fmt"
+	"github.com/eddieowens/ranvier/commons"
 	"github.com/eddieowens/ranvier/lang/compiler"
 	"github.com/eddieowens/ranvier/lang/domain"
 	"github.com/eddieowens/ranvier/lang/tests/integration"
@@ -68,20 +69,50 @@ func (c *CompilerTest) TestCompileAll() {
 		},
 	}
 
-	expected := map[string]domain.Schema{
+	prod := domain.ParsedSchema{
+		Schema: domain.Schema{
+			Name:   "prod",
+			Config: c.FileToRaw(fp, "prod.json"),
+			Path:   path.Join(fp, "prod.json"),
+		},
+	}
+
+	staging := domain.ParsedSchema{
+		Schema: domain.Schema{
+			Name:   "staging",
+			Config: c.FileToRaw(fp, "staging.json"),
+			Path:   path.Join(fp, "staging.json"),
+		},
+	}
+
+	expected := map[string]domain.CompiledSchema{
 		"users-prod": {
-			Name:    "users-prod",
-			Extends: []string{path.Join(fp, "prod.json")},
-			Path:    path.Join(fp, "users", "prod.json"),
+			ParsedSchema: domain.ParsedSchema{
+				Schema: domain.Schema{
+					Name:    "users-prod",
+					Extends: []string{path.Join(fp, "prod.json")},
+					Path:    path.Join(fp, "users", "prod.json"),
+				},
+				Dependencies: []domain.ParsedSchema{prod},
+			},
 		},
 		"users-staging": {
-			Name:    "users-staging",
-			Extends: []string{path.Join(fp, "staging.json")},
-			Path:    path.Join(fp, "users", "staging.json"),
+			ParsedSchema: domain.ParsedSchema{
+				Schema: domain.Schema{
+					Name:    "users-staging",
+					Extends: []string{path.Join(fp, "staging.json")},
+					Path:    path.Join(fp, "users", "staging.json"),
+				},
+				Dependencies: []domain.ParsedSchema{staging},
+			},
 		},
 		"users-users": {
-			Name: "users-users",
-			Path: path.Join(fp, "users", "users.json"),
+			ParsedSchema: domain.ParsedSchema{
+				Schema: domain.Schema{
+					Name: "users-users",
+					Path: path.Join(fp, "users", "users.json"),
+				},
+			},
 		},
 	}
 
@@ -123,10 +154,12 @@ func (c *CompilerTest) TestParse() {
 		c.FailNow(err.Error())
 	}
 
-	expected := domain.Schema{
-		Name:   "users-users",
-		Path:   path.Join(fp, "users", "users.json"),
-		Config: d,
+	expected := domain.ParsedSchema{
+		Schema: domain.Schema{
+			Name:   "users-users",
+			Path:   path.Join(fp, "users", "users.json"),
+			Config: d,
+		},
 	}
 
 	// -- When
@@ -142,7 +175,7 @@ func (c *CompilerTest) TestParse() {
 	}
 }
 
-func (c *CompilerTest) EqualSchemas(expected, actual domain.Schema) bool {
+func (c *CompilerTest) EqualSchemas(expected, actual domain.ParsedSchema) bool {
 	var expConfig, actConfig interface{}
 	err := json.Unmarshal(expected.Config, &expConfig)
 	if c.NoError(err) {
@@ -175,6 +208,15 @@ func (c *CompilerTest) EqualConfigFromFile(file string, expected TestConfig) {
 		if c.NoError(err) {
 			c.Equal(expected, actual)
 		}
+	}
+}
+
+func (c *CompilerTest) FileToRaw(root, fp string) commons.Raw {
+	s, err := c.comp.Load(root, fp)
+	if c.NoError(err) {
+		return s.Config
+	} else {
+		return nil
 	}
 }
 
