@@ -17,7 +17,7 @@ import (
 const FileServiceKey = "FileService"
 
 type FileService interface {
-	ToFile(directory, fileExt string, config *domain.Schema) error
+	ToFile(directory, fileExt string, config *domain.CompiledSchema) error
 
 	// Removes the root path from the filepath (fp) if it's present. If the root path cannot be found in the fp, the fp
 	// is returned.
@@ -46,7 +46,7 @@ func (f *fileServiceImpl) SubtractPath(root, fp string) string {
 	return p
 }
 
-func (f *fileServiceImpl) ToFile(directory, fileExt string, config *domain.Schema) error {
+func (f *fileServiceImpl) ToFile(directory, fileExt string, config *domain.CompiledSchema) error {
 	if config == nil {
 		return errors.New("schema cannot be nil")
 	}

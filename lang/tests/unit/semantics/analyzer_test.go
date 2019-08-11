@@ -22,12 +22,15 @@ func (v *ValidatorTest) SetupTest() {
 func (v *ValidatorTest) TestValidExtends() {
 	// -- Given
 	//
-	m := domain.Schema{
-		Name: "name",
-		Extends: []string{
-			path.Join(v.Resources(), "final.json"),
+	m := domain.ParsedSchema{
+		Schema: domain.Schema{
+			Name: "name",
+			Extends: []string{
+				path.Join(v.Resources(), "final.json"),
+			},
+			Config: []byte(""),
 		},
-		Config: []byte(""),
+		Dependencies: nil,
 	}
 
 	// -- When
@@ -42,13 +45,16 @@ func (v *ValidatorTest) TestValidExtends() {
 func (v *ValidatorTest) TestInvalidExtendsExt() {
 	// -- Given
 	//
-	m := domain.Schema{
-		Name: "name",
-		Extends: []string{
-			path.Join(v.Resources(), "final.jso"),
+	m := domain.ParsedSchema{
+		Schema: domain.Schema{
+			Name: "name",
+			Extends: []string{
+				path.Join(v.Resources(), "final.jso"),
+			},
+			Config: []byte(""),
+			Path:   "made-up.json",
 		},
-		Config: []byte(""),
-		Path:   "made-up.json",
+		Dependencies: nil,
 	}
 
 	expectedErrMsg := fmt.Sprintf("Failed to compile made-up.json due to field extends[0]: %s/final.jso does not "+
@@ -66,13 +72,17 @@ func (v *ValidatorTest) TestInvalidExtendsExt() {
 func (v *ValidatorTest) TestInvalidFilepath() {
 	// -- Given
 	//
-	m := domain.Schema{
-		Name: "name",
-		Extends: []string{
-			path.Join(v.Resources(), "not-exist.yml"),
+
+	m := domain.ParsedSchema{
+		Schema: domain.Schema{
+			Name: "name",
+			Extends: []string{
+				path.Join(v.Resources(), "not-exist.yml"),
+			},
+			Config: []byte(""),
+			Path:   "made-up.yml",
 		},
-		Config: []byte(""),
-		Path:   "made-up.yml",
+		Dependencies: nil,
 	}
 
 	expectedErrMsg := fmt.Sprintf("Failed to compile made-up.yml due to field extends[0]: Could not find file %s/not-exist.yml.", v.Resources())

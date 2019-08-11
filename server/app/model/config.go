@@ -1,8 +1,12 @@
 package model
 
+import "github.com/eddieowens/ranvier/lang/domain"
+
 type Config struct {
-	Name string      `json:"name"`
-	Data interface{} `json:"data"`
+	Name       string        `json:"name"`
+	Data       interface{}   `json:"data"`
+	Schema     domain.Schema `json:"-"`
+	Dependents []string      `json:"-"`
 }
 
 type EventType int

@@ -17,7 +17,20 @@ type Schema struct {
 	// The user's own config. This can be any data the user wishes to use.
 	Config commons.Raw `json:"config"`
 
+	// When using the Kubernetes plugin, this value determines what namespace to place the resulting configmap into. If
+	// no Kubernetes plugin is running, this field has no effect.
+	Namespace string `json:"namespace"`
+
 	// The fullfile path to the file from which this schema was created. Ignored if specified by user as it is only meant
 	// to be used internally.
 	Path string `json:"-"`
+}
+
+type CompiledSchema struct {
+	ParsedSchema
+}
+
+type ParsedSchema struct {
+	Schema
+	Dependencies []ParsedSchema
 }

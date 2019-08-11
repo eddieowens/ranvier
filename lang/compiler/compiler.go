@@ -30,16 +30,17 @@ type CompileOptions struct {
 }
 
 type ParseOptions struct {
-	// The root directory of the file to parse which determines the prepended name of the file. The file that is being
+	// The root directory of the file to parse which determines the name of the file. The file that is being
 	// parsed must lie within this directory.
 	Root string `validate:"required,file"`
 }
 
 type Compiler interface {
-	Compile(filepath string, options CompileOptions) (*domain.Schema, error)
+	Compile(filepath string, options CompileOptions) (*domain.CompiledSchema, error)
 	CompileAll(path string, options CompileAllOptions) (SchemaPack, error)
-	ValidateSemantics(manifest *domain.Schema) error
-	Parse(fp string, options ParseOptions) (*domain.Schema, error)
+	ValidateSemantics(manifest *domain.ParsedSchema) error
+	Parse(fp string, options ParseOptions) (*domain.ParsedSchema, error)
+	Load(root, fp string) (*domain.Schema, error)
 }
 
 type compilerImpl struct {
@@ -49,6 +50,25 @@ type compilerImpl struct {
 	FileService      services.FileService   `inject:"FileService"`
 	Packer           SchemaPacker           `inject:"SchemaPacker"`
 	ValidatorService validator.Validator    `inject:"Validator"`
+}
+
+func (c *compilerImpl) Load(root, fp string) (*domain.Schema, error) {
+	p := path.Join(root, fp)
+
+	d, err := ioutil.ReadFile(p)
+	if err != nil {
+		return nil, err
+	}
+
+	schma := new(domain.Schema)
+	err = json.Unmarshal(d, schma)
+	if err != nil {
+		return nil, err
+	}
+
+	schma.Name = ToSchemaName(fp)
+
+	return schma, nil
 }
 
 func (c *compilerImpl) CompileAll(path string, options CompileAllOptions) (SchemaPack, error) {
@@ -85,45 +105,42 @@ func (c *compilerImpl) CompileAll(path string, options CompileAllOptions) (Schem
 	}
 }
 
-func (c *compilerImpl) ValidateSemantics(manifest *domain.Schema) error {
+func (c *compilerImpl) ValidateSemantics(manifest *domain.ParsedSchema) error {
 	return c.Analyzer.Semantics(manifest)
 }
 
-func (c *compilerImpl) Parse(fp string, options ParseOptions) (*domain.Schema, error) {
+func (c *compilerImpl) Parse(fp string, options ParseOptions) (*domain.ParsedSchema, error) {
 	if err := c.ValidatorService.Struct(options); err != nil {
 		return nil, err
 	}
 
-	schemaPath := path.Join(options.Root, fp)
-	d, err := ioutil.ReadFile(schemaPath)
+	schma, err := c.Load(options.Root, fp)
 	if err != nil {
 		return nil, err
 	}
-
-	schma := domain.Schema{}
-	err = json.Unmarshal(d, &schma)
-	if err != nil {
-		return nil, err
-	}
-
-	schma.Name = ToSchemaName(fp)
 
 	var extendedConfig []byte
+	dependentSchemas := make([]domain.ParsedSchema, len(schma.Extends))
 	for i, v := range schma.Extends {
 		schma.Extends[i] = path.Join(options.Root, v)
-		mani, err := c.Parse(v, options)
+		depSchema, err := c.Parse(v, options)
 		if err != nil {
-			return mani, err
+			return depSchema, err
 		}
 
 		if extendedConfig == nil {
-			extendedConfig = mani.Config
+			extendedConfig = depSchema.Config
 		} else {
-			extendedConfig, err = c.JsonMerger.MergeJson(mani.Config, extendedConfig)
+			extendedConfig, err = c.JsonMerger.MergeJson(depSchema.Config, extendedConfig)
 			if err != nil {
 				return nil, err
 			}
 		}
+
+		dependentSchemas[i] = *depSchema
+	}
+	if len(dependentSchemas) <= 0 {
+		dependentSchemas = nil
 	}
 
 	var config []byte
@@ -139,12 +156,15 @@ func (c *compilerImpl) Parse(fp string, options ParseOptions) (*domain.Schema, e
 	}
 
 	schma.Config = config
-	schma.Path = schemaPath
+	schma.Path = path.Join(options.Root, fp)
 
-	return &schma, nil
+	return &domain.ParsedSchema{
+		Schema:       *schma,
+		Dependencies: dependentSchemas,
+	}, nil
 }
 
-func (c *compilerImpl) Compile(fp string, options CompileOptions) (*domain.Schema, error) {
+func (c *compilerImpl) Compile(fp string, options CompileOptions) (*domain.CompiledSchema, error) {
 	if options.Type == "" {
 		options.Type = domain.Json
 	}
@@ -161,15 +181,18 @@ func (c *compilerImpl) Compile(fp string, options CompileOptions) (*domain.Schem
 		return nil, err
 	}
 
-	if !options.DryRun {
+	compiledSchema := &domain.CompiledSchema{
+		ParsedSchema: *m,
+	}
 
-		err := c.FileService.ToFile(options.OutputDirectory, options.Type, m)
+	if !options.DryRun {
+		err := c.FileService.ToFile(options.OutputDirectory, options.Type, compiledSchema)
 		if err != nil {
 			return nil, err
 		}
 	}
 
-	return m, err
+	return compiledSchema, err
 }
 
 // Converts the Schema's filepath into its corresponding name.

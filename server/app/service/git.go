@@ -110,7 +110,7 @@ func (g *gitServiceImpl) DiffRemote(repo *git.Repository, branch string) ([]mode
 }
 
 func (g *gitServiceImpl) Clone(remote, branch, directory string) (*git.Repository, error) {
-	logrus.WithField("remote", remote).
+	log.WithField("remote", remote).
 		WithField("branch", branch).
 		WithField("clone_directory", directory).
 		Debug("Cloning repo")
@@ -122,7 +122,7 @@ func (g *gitServiceImpl) Clone(remote, branch, directory string) (*git.Repositor
 	})
 
 	if err == git.ErrRepositoryAlreadyExists {
-		logrus.Debug("Failed to clone as repo is already present")
+		log.Debug("Failed to clone as repo is already present")
 		return git.PlainOpen(directory)
 	} else if err != nil {
 		return nil, err

@@ -9,16 +9,16 @@ import (
 const SchemaPackerKey = "SchemaPacker"
 
 type SchemaPack interface {
-	Schemas() map[string]domain.Schema
+	Schemas() map[string]domain.CompiledSchema
 	Path() string
 }
 
 type SchemaPacker interface {
-	AddSchema(pack SchemaPack, schema *domain.Schema) error
+	AddSchema(pack SchemaPack, schema *domain.CompiledSchema) error
 }
 
 type schemaPackImpl struct {
-	schemas map[string]domain.Schema
+	schemas map[string]domain.CompiledSchema
 	path    string
 }
 
@@ -29,7 +29,7 @@ func (p *schemaPackImpl) Path() string {
 type schemaPackerImpl struct {
 }
 
-func (p *schemaPackerImpl) AddSchema(pack SchemaPack, schema *domain.Schema) error {
+func (p *schemaPackerImpl) AddSchema(pack SchemaPack, schema *domain.CompiledSchema) error {
 	if schema == nil {
 		return errors.New("schema cannot be nil")
 	}
@@ -42,13 +42,13 @@ func (p *schemaPackerImpl) AddSchema(pack SchemaPack, schema *domain.Schema) err
 	return nil
 }
 
-func (p *schemaPackImpl) Schemas() map[string]domain.Schema {
+func (p *schemaPackImpl) Schemas() map[string]domain.CompiledSchema {
 	return p.schemas
 }
 
 func NewSchemaPack(path string) SchemaPack {
 	return &schemaPackImpl{
-		schemas: make(map[string]domain.Schema),
+		schemas: make(map[string]domain.CompiledSchema),
 		path:    path,
 	}
 }
