@@ -22,10 +22,10 @@ type App interface {
 }
 
 type appImpl struct {
-	Router          router.Router               `inject:"Router"`
-	GitPoller       poller.GitPoller            `inject:"GitPoller"`
-	ConfigWsService service.ConfigPollerService `inject:"ConfigPollerService"`
-	Config          configuration.Config        `inject:"Config"`
+	Router          router.Router              `inject:"Router"`
+	GitPoller       poller.GitPoller           `inject:"GitPoller"`
+	ConfigWsService service.ConfigEventService `inject:"ConfigEventService"`
+	Config          configuration.Config       `inject:"Config"`
 }
 
 func (a *appImpl) Run() {
@@ -48,7 +48,7 @@ func (a *appImpl) Run() {
 
 	a.Router.RegisterAll(e)
 
-	err := a.GitPoller.Start(a.ConfigWsService.OnUpdate, a.ConfigWsService.OnStart, *regexp.MustCompile(fmt.Sprintf(".+(%s)", strings.Join(domain.SupportedFileTypes, "|"))))
+	err := a.GitPoller.Start(a.ConfigWsService.OnEvent, a.ConfigWsService.OnStart, *regexp.MustCompile(fmt.Sprintf(".+(%s)", strings.Join(domain.SupportedFileTypes, "|"))))
 	if err != nil {
 		log.Fatal(err)
 	}

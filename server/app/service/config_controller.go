@@ -17,8 +17,8 @@ type ConfigControllerService interface {
 }
 
 type configControllerServiceImpl struct {
-	MappingService MappingService `inject:"MappingService"`
-	ConfigService  ConfigService  `inject:"ConfigService"`
+	MappingService MappingService   `inject:"MappingService"`
+	ConfigService  ConfigMapService `inject:"ConfigMapService"`
 }
 
 func (c *configControllerServiceImpl) Delete(name string) (*response.Config, error) {
@@ -31,7 +31,7 @@ func (c *configControllerServiceImpl) Delete(name string) (*response.Config, err
 }
 
 func (c *configControllerServiceImpl) Create(config *model.Config) (*response.Config, error) {
-	conf := c.ConfigService.Set(config)
+	conf := c.ConfigService.Create(config)
 	if conf != nil {
 		return nil, echo.NewHTTPError(400, fmt.Sprintf("%s already exists", config.Name))
 	}
@@ -40,7 +40,7 @@ func (c *configControllerServiceImpl) Create(config *model.Config) (*response.Co
 }
 
 func (c *configControllerServiceImpl) Update(config *model.Config) (*response.Config, error) {
-	conf := c.ConfigService.Set(config)
+	conf := c.ConfigService.Create(config)
 	return c.MappingService.ToResponse(conf), nil
 }
 

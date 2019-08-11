@@ -27,12 +27,12 @@ func (w *websocketImpl) Connect(topic string, wr http.ResponseWriter, req *http.
 
 	defer ws.Close()
 
-	logrus.WithField("topic", topic).Debug("Establishing websocket connection")
+	log.WithField("topic", topic).Debug("Establishing websocket connection")
 	for c := range w.PubSub.Subscribe(topic) {
-		logrus.WithField("topic", topic).WithField("event", c).Debug("Sending websocket event")
+		log.WithField("topic", topic).WithField("event", c).Debug("Sending websocket event")
 		err = ws.WriteJSON(c)
 		if err != nil {
-			logrus.WithError(err).Error("Failed to write to message to topic")
+			log.WithError(err).Error("Failed to write to message to topic")
 			continue
 		}
 	}

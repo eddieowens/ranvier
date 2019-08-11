@@ -15,9 +15,10 @@ func (*Package) Bindings() []axon.Binding {
 		axon.Bind(ConfigControllerServiceKey).To().StructPtr(new(configControllerServiceImpl)),
 		axon.Bind(JsonMergerKey).To().StructPtr(commons.NewJsonMerger()),
 		axon.Bind(MappingServiceKey).To().StructPtr(new(mappingServiceImpl)),
+		axon.Bind(ConfigMapServiceKey).To().StructPtr(new(configMapServiceImpl)),
 		axon.Bind(ConfigServiceKey).To().StructPtr(new(configServiceImpl)),
 		axon.Bind(GitServiceKey).To().StructPtr(new(gitServiceImpl)),
-		axon.Bind(ConfigPollerServiceKey).To().StructPtr(new(configPollerServiceImpl)),
+		axon.Bind(ConfigEventServiceKey).To().StructPtr(new(configEventServiceImpl)),
 		axon.Bind(CompilerServiceKey).To().StructPtr(new(compilerServiceImpl)),
 	}
 }
